@@ -702,6 +702,17 @@
 <!-- ════ TAB 3: MENÜ PLANLAMA ════ -->
 <section id="tab-dg" class="tab-content hidden space-y-5">
 
+  <!-- ★ Akıllı Menü Yardımcısı -->
+  <div id="menu_recs_panel" class="card bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="section-title"><i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i> Akıllı Menü Yardımcısı</h3>
+      <button onclick="renderMenuRecs()" class="text-[11px] text-indigo-500 hover:text-indigo-700 font-semibold flex items-center gap-1"><i class="fa-solid fa-rotate-right"></i> Yenile</button>
+    </div>
+    <div id="menu_recs_content">
+      <p class="text-xs text-slate-400 italic">Danışan bilgilerini (Tab 1) ve enerji hesabını (Tab 2) doldurun — öneriler burada belirecek.</p>
+    </div>
+  </div>
+
   <div class="card space-y-4">
     <h3 class="section-title"><i class="fa-solid fa-utensils text-indigo-600"></i> Menü Planlama</h3>
     <div class="grid grid-cols-2 gap-3">
@@ -1467,6 +1478,7 @@ function switchTab(tabId) {
   window.scrollTo(0,0);
   if (tabId==='tn') renderBIAHistory();
   if (tabId==='sp') { renderSuppClinRecs(); suppLoad(); }
+  if (tabId==='dg') renderMenuRecs();
 }
 
 /* ══ BAŞLANGIÇ ══ */
@@ -1515,6 +1527,223 @@ window.onload = () => {
   }
 };
 
+/* ══ AKILLI MENÜ YARDIMCISI ══ */
+const FOOD_DB = {
+  protein: [
+    {n:'Yumurta',          tags:['genel','obez','pkos','dm','ir','dislip'],  keys:['yumurta']},
+    {n:'Tavuk göğsü',      tags:['genel','obez','dm','ir','pkos'],           keys:['tavuk']},
+    {n:'Hindi eti',        tags:['genel','obez','dm'],                        keys:['hindi']},
+    {n:'Somon',            tags:['dislip','pkos','genel'],                    keys:['somon','balik','balık']},
+    {n:'Ton balığı',       tags:['dislip','pkos','genel'],                    keys:['ton','balik','balık']},
+    {n:'Uskumru',          tags:['dislip','pkos'],                            keys:['uskumru','balik','balık']},
+    {n:'Yoğurt (süzme)',   tags:['genel','obez','pkos','dm'],                 keys:['yogurt','yoğurt','sut','süt','laktoz']},
+    {n:'Lor / Çökelek',    tags:['genel','obez','osteo'],                     keys:['lor','cokelek','çökelek','laktoz','peynir']},
+    {n:'Az yağlı peynir',  tags:['genel','dm','pkos'],                        keys:['peynir','laktoz']},
+    {n:'Mercimek',         tags:['genel','dm','ir','pkos','anemi','dislip'],  keys:['mercimek','baklagil']},
+    {n:'Nohut',            tags:['genel','dm','ir','pkos'],                   keys:['nohut','baklagil']},
+    {n:'Kuru fasulye',     tags:['genel','dm','ir','dislip'],                 keys:['fasulye','baklagil']},
+    {n:'Yağsız kırmızı et',tags:['anemi','genel'],                           keys:['kirmizi et','kırmızı et','et']},
+  ],
+  karbonhidrat: [
+    {n:'Yulaf ezmesi',     tags:['dm','ir','dislip','pkos','obez','genel'],  keys:['yulaf','gluten','tahil','tahıl']},
+    {n:'Kinoa',            tags:['dm','ir','pkos','obez','genel'],            keys:['kinoa']},
+    {n:'Bulgur',           tags:['genel','dm','ir'],                          keys:['bulgur','gluten','tahil','tahıl']},
+    {n:'Tam buğday ekmeği',tags:['genel'],                                   keys:['ekmek','gluten','tahil','tahıl']},
+    {n:'Çavdar ekmeği',    tags:['dm','ir','dislip','genel'],                 keys:['ekmek','gluten','tahil','tahıl']},
+    {n:'Tatlı patates',    tags:['dm','ir','pkos','obez'],                   keys:['patates','tatli patates','tatlı patates']},
+    {n:'Basmati pirinç',   tags:['genel'],                                   keys:['pirinc','pirinç']},
+    {n:'Makarna (tam buğday)',tags:['genel'],                                keys:['makarna','gluten','tahil','tahıl']},
+    {n:'Mısır',            tags:['genel','dm'],                              keys:['misir','mısır']},
+  ],
+  yag: [
+    {n:'Zeytinyağı',       tags:['dislip','pkos','dm','genel'],              keys:['zeytinyagi','zeytinyağı','yag','yağ']},
+    {n:'Avokado',          tags:['dislip','pkos','genel'],                   keys:['avokado']},
+    {n:'Ceviz',            tags:['dislip','pkos','genel'],                   keys:['ceviz','kuruyemis','kuruyemiş']},
+    {n:'Badem',            tags:['dislip','genel'],                          keys:['badem','kuruyemis','kuruyemiş']},
+    {n:'Keten tohumu',     tags:['pkos','dislip','dm','genel'],              keys:['keten']},
+    {n:'Chia tohumu',      tags:['pkos','dislip','genel'],                   keys:['chia']},
+    {n:'Fındık',           tags:['genel'],                                   keys:['findik','fındık','kuruyemis','kuruyemiş']},
+  ],
+  sebze: [
+    {n:'Ispanak',          tags:['anemi','genel','obez','dm'],               keys:['ispanak']},
+    {n:'Roka / Marul',     tags:['genel','obez','dm'],                       keys:['roka','marul']},
+    {n:'Salatalık',        tags:['genel','obez','dm'],                       keys:['salatalik','salatalık']},
+    {n:'Domates',          tags:['genel','obez','dislip'],                   keys:['domates']},
+    {n:'Brokoli',          tags:['genel','obez','dislip'],                   keys:['brokoli'],  hipo_limit:true},
+    {n:'Karnabahar',       tags:['genel','obez','dm'],                       keys:['karnabahar'], hipo_limit:true},
+    {n:'Kabak',            tags:['genel','obez','dm','ibs'],                 keys:['kabak']},
+    {n:'Patlıcan',         tags:['genel','dm','dislip'],                     keys:['patlican','patlıcan']},
+    {n:'Biber (yeşil/kırmızı)',tags:['genel','anemi','dm'],                 keys:['biber']},
+    {n:'Kereviz',          tags:['genel','obez'],                            keys:['kereviz']},
+    {n:'Yeşil fasulye',    tags:['genel','dm','ir'],                         keys:['yesil fasulye','yeşil fasulye']},
+    {n:'Bezelye',          tags:['genel','dm'],                              keys:['bezelye']},
+    {n:'Sarımsak',         tags:['dislip','dm','pkos'],                      keys:['sarimsak','sarımsak']},
+    {n:'Soğan',            tags:['dislip','genel'],                          keys:['sogan','soğan']},
+  ],
+  meyve: [
+    {n:'Elma',             tags:['genel','dm','ir','dislip'],                keys:['elma']},
+    {n:'Armut',            tags:['genel','dm','ibs'],                        keys:['armut']},
+    {n:'Çilek',            tags:['genel','dm','pkos','anemi'],               keys:['cilek','çilek']},
+    {n:'Yaban mersini',    tags:['pkos','dislip','dm'],                      keys:['yaban mersini']},
+    {n:'Kivi',             tags:['genel','anemi'],                           keys:['kivi']},
+    {n:'Portakal',         tags:['anemi','genel'],                           keys:['portakal']},
+    {n:'Greyfurt',         tags:['obez','dm'],                               keys:['greyfurt']},
+    {n:'Muz',              tags:['genel'],                                   keys:['muz']},
+    {n:'Üzüm',             tags:['genel'],                                   keys:['uzum','üzüm']},
+  ]
+};
+
+function getAvoidList() {
+  const raw = [
+    ($('cnt_dislikes')||{}).value||'',
+    ($('cnt_allergy')||{}).value||''
+  ].join(',').toLowerCase();
+  return raw.split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean);
+}
+
+function isFoodAvoided(food, avoidList) {
+  if (!avoidList.length) return false;
+  return avoidList.some(avoid => food.keys.some(k => avoid.includes(k) || k.includes(avoid)));
+}
+
+function getConditionTags() {
+  const tags = ['genel'];
+  if ($('dx_obez')&&$('dx_obez').checked || $('dx_ir')&&$('dx_ir').checked) tags.push('obez');
+  if ($('dx_dm2')&&$('dx_dm2').checked || $('dx_dm1')&&$('dx_dm1').checked) tags.push('dm');
+  if ($('dx_ir')&&$('dx_ir').checked)      tags.push('ir');
+  if ($('dx_dislip')&&$('dx_dislip').checked) tags.push('dislip');
+  if ($('dx_pkos')&&$('dx_pkos').checked)  tags.push('pkos');
+  if ($('dx_anemi')&&$('dx_anemi').checked) tags.push('anemi');
+  if ($('dx_osteo')&&$('dx_osteo').checked) tags.push('osteo');
+  if ($('dx_ibs')&&$('dx_ibs').checked)    tags.push('ibs');
+  if ($('dx_hipo')&&$('dx_hipo').checked)  tags.push('hipo');
+  return tags;
+}
+
+function getMacroTargets() {
+  const kg   = N('cnt_weight') || N('tn_ffm') ? (N('tn_ffm')||0) + (N('tn_fm')||0) : 0;
+  const kcal = N('mn_kcal') || N('en_target') || 0;
+  const condTags = getConditionTags();
+  let protRatio=0.30, carbRatio=0.45, fatRatio=0.25;
+  let protGkg = 1.3; // g/kg
+
+  if (condTags.includes('dm') || condTags.includes('ir')) {
+    carbRatio=0.38; fatRatio=0.32; protRatio=0.30; protGkg=1.4;
+  } else if (condTags.includes('dislip')) {
+    carbRatio=0.45; fatRatio=0.25; protRatio=0.30;
+  } else if (condTags.includes('pkos')) {
+    carbRatio=0.38; fatRatio=0.32; protRatio=0.30; protGkg=1.4;
+  } else if (condTags.includes('obez')) {
+    carbRatio=0.40; fatRatio=0.28; protRatio=0.32; protGkg=1.5;
+  } else if (condTags.includes('anemi')) {
+    protGkg=1.2;
+  }
+
+  const protG = kcal > 0 ? Math.round(kcal * protRatio / 4) : (kg > 0 ? Math.round(kg * protGkg) : 0);
+  const carbG = kcal > 0 ? Math.round(kcal * carbRatio / 4) : 0;
+  const fatG  = kcal > 0 ? Math.round(kcal * fatRatio  / 9) : 0;
+  return { kcal, protG, carbG, fatG, protRatio, carbRatio, fatRatio };
+}
+
+function renderMenuRecs() {
+  const el = $('menu_recs_content'); if (!el) return;
+  const avoidList = getAvoidList();
+  const condTags  = getConditionTags();
+  const macros    = getMacroTargets();
+  const name      = ($('cnt_name')||{}).value || '';
+  const isHipo    = condTags.includes('hipo');
+
+  // ── Enerji & Makro özeti ──
+  let kcalHtml = '';
+  if (macros.kcal > 0) {
+    // Mn_kcal'ı enerji hedefinden otomatik doldur
+    const mnKcalEl = $('mn_kcal');
+    if (mnKcalEl && !mnKcalEl.value) mnKcalEl.value = macros.kcal;
+    kcalHtml = `<div class="bg-white rounded-xl p-3 border border-indigo-100">
+      <p class="text-[11px] font-bold text-indigo-700 mb-2 uppercase tracking-wide">⚡ Enerji & Makro Hedefleri</p>
+      <div class="flex flex-wrap gap-2">
+        <span class="badge bg-indigo-100 text-indigo-800">${macros.kcal} kcal/gün</span>
+        <span class="badge bg-green-100 text-green-800">Protein ${macros.protG}g (%${Math.round(macros.protRatio*100)})</span>
+        <span class="badge bg-yellow-100 text-yellow-800">KH ${macros.carbG}g (%${Math.round(macros.carbRatio*100)})</span>
+        <span class="badge bg-purple-100 text-purple-800">Yağ ${macros.fatG}g (%${Math.round(macros.fatRatio*100)})</span>
+      </div>
+    </div>`;
+  } else {
+    kcalHtml = `<div class="bg-white/70 rounded-xl p-2.5 border border-indigo-100 text-xs text-slate-400">
+      Enerji hedefi için önce <strong>Tab 2 → Enerji Hesapla</strong>'yı çalıştırın.
+    </div>`;
+  }
+
+  // ── Kaçınılacak besinler ──
+  let avoidHtml = '';
+  if (avoidList.length) {
+    avoidHtml = `<div class="bg-white rounded-xl p-3 border border-red-100">
+      <p class="text-[11px] font-bold text-red-700 mb-2 uppercase tracking-wide">🚫 ${name ? name.split(' ')[0]+' ' : ''}Yemez / Tolere Edemez</p>
+      <div class="flex flex-wrap gap-1.5">
+        ${avoidList.map(a=>`<span class="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-200 rounded-full px-2.5 py-0.5 text-xs font-semibold"><i class="fa-solid fa-xmark text-[10px]"></i>${a}</span>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // ── Tanıya göre beslenme notları ──
+  const clinNotes = [];
+  if (condTags.includes('dm') || condTags.includes('ir'))
+    clinNotes.push({ icon:'🩸', color:'text-red-700', text:'DM/İR: Düşük GI besinler, lif ≥25g/gün, rafine KH kısıt. Öğünleri eşit dağıtın.' });
+  if (condTags.includes('dislip'))
+    clinNotes.push({ icon:'❤️', color:'text-pink-700', text:'Dislipidemi: Doymuş yağ <%7 TE, trans yağ sıfır, lif ≥10g çözünür, Omega-3 öncelikli.' });
+  if (condTags.includes('pkos'))
+    clinNotes.push({ icon:'🌸', color:'text-violet-700', text:'PKOS: Anti-enflamatuvar + düşük GI diyet. Myo-inositol kaynakları (baklagil, narenciye) ekleyin.' });
+  if (isHipo)
+    clinNotes.push({ icon:'🦋', color:'text-teal-700', text:'Hipotiroidi: Çiğ kruzifera sebzeleri (brokoli, karnabahar) sınırlayın — pişirerek kullanın. Soya izole etinden kaçının.' });
+  if (condTags.includes('anemi'))
+    clinNotes.push({ icon:'🩷', color:'text-orange-700', text:'Anemi: Hemdemir kaynakları (kırmızı et, mercimek) + her öğünde C vitamini (portakal, biber, kivi). Çay/kahveyi yemekten ayrı alın.' });
+  if (condTags.includes('ibs'))
+    clinNotes.push({ icon:'🌿', color:'text-green-700', text:'İBS: Düşük FODMAP yaklaşımı. Yüksek FODMAP sebze/meyvelerden (soğan çiğ, elma çiğ, laktoz) kaçının.' });
+  if (condTags.includes('osteo'))
+    clinNotes.push({ icon:'🦴', color:'text-blue-700', text:'Osteoporoz: Kalsiyum 1200mg/gün (süt ürünleri, yeşil yapraklı) + D vitamini + K2. Aşırı tuz ve kafein kısıtı.' });
+
+  let notesHtml = '';
+  if (clinNotes.length) {
+    notesHtml = `<div class="bg-white rounded-xl p-3 border border-amber-100 space-y-2">
+      <p class="text-[11px] font-bold text-amber-700 uppercase tracking-wide">📋 Klinik Beslenme Notları</p>
+      ${clinNotes.map(n=>`<p class="text-xs ${n.color}">${n.icon} ${n.text}</p>`).join('')}
+    </div>`;
+  }
+
+  // ── Besin önerileri (kaçınılacaklar filtrelenmiş) ──
+  function getFoods(group) {
+    return FOOD_DB[group]
+      .filter(f => f.tags.some(t => condTags.includes(t)))
+      .filter(f => !isFoodAvoided(f, avoidList))
+      .filter(f => !(isHipo && f.hipo_limit))
+      .map(f => f.n);
+  }
+
+  const proteins = getFoods('protein');
+  const karbs    = getFoods('karbonhidrat');
+  const yaglar   = getFoods('yag');
+  const sebzeler = getFoods('sebze');
+  const meyveler = getFoods('meyve');
+
+  function foodChips(list, color) {
+    if (!list.length) return '<span class="text-xs text-slate-400 italic">—</span>';
+    return list.map(n=>`<span class="inline-block bg-${color}-50 text-${color}-700 border border-${color}-200 rounded-full px-2.5 py-0.5 text-xs font-semibold">${n}</span>`).join(' ');
+  }
+
+  const foodHtml = `<div class="bg-white rounded-xl p-3 border border-emerald-100 space-y-2.5">
+    <p class="text-[11px] font-bold text-emerald-700 uppercase tracking-wide">✅ Önerilen Besinler${avoidList.length?' (kısıtlar filtrelenmiş)':''}</p>
+    <div class="space-y-1.5 text-xs">
+      <div><span class="font-semibold text-slate-500 mr-1">🥩 Protein:</span>${foodChips(proteins,'green')}</div>
+      <div><span class="font-semibold text-slate-500 mr-1">🌾 KH:</span>${foodChips(karbs,'yellow')}</div>
+      <div><span class="font-semibold text-slate-500 mr-1">🫒 Yağ:</span>${foodChips(yaglar,'purple')}</div>
+      <div><span class="font-semibold text-slate-500 mr-1">🥦 Sebze:</span>${foodChips(sebzeler,'emerald')}</div>
+      <div><span class="font-semibold text-slate-500 mr-1">🍎 Meyve:</span>${foodChips(meyveler,'orange')}</div>
+    </div>
+  </div>`;
+
+  el.innerHTML = [kcalHtml, avoidHtml, notesHtml, foodHtml].filter(Boolean).join('');
+}
+
 /* ══ GOOGLE FORM ENTEGRASYONU ══ */
 async function fetchGoogleForm() {
   const url = ($('gform_script_url')||{}).value || '';
@@ -1546,17 +1775,26 @@ function fillFromGForm(data) {
   // Google Sheet başlıkları → Form alan eşleştirmesi
   // Başlıklar: Email, Ad ve Soyad, Cinsiyet, Telefon Numarası, Meslek ve Öğrenim Durumu, Doğum Tarihi
   const map = {
-    'Ad ve Soyad':               'cnt_name',
-    'Adı Soyadı':                'cnt_name',
-    'Ad Soyad':                  'cnt_name',
-    'Cinsiyet':                  null,          // özel işlem
-    'Telefon Numarası':          'cnt_phone',
-    'Telefon':                   'cnt_phone',
-    'Meslek ve Öğrenim Durumu':  'cnt_job',
-    'Meslek':                    'cnt_job',
-    'Doğum Tarihi':              'cnt_dob',
-    'Doğum tarihi':              'cnt_dob',
-    'Email':                     null,          // kullanmıyoruz
+    'Ad ve Soyad':                        'cnt_name',
+    'Adı Soyadı':                         'cnt_name',
+    'Ad Soyad':                           'cnt_name',
+    'Cinsiyet':                           null,
+    'Telefon Numarası':                   'cnt_phone',
+    'Telefon':                            'cnt_phone',
+    'Meslek ve Öğrenim Durumu':           'cnt_job',
+    'Meslek':                             'cnt_job',
+    'Doğum Tarihi':                       'cnt_dob',
+    'Doğum tarihi':                       'cnt_dob',
+    // Yemek tercihleri / kısıtlamalar
+    'Yemediğiniz / Yiyemediğiniz Besinler': 'cnt_dislikes',
+    'Yemediğiniz Besinler':               'cnt_dislikes',
+    'Sevmediğiniz Yiyecekler':            'cnt_dislikes',
+    'Yemek İstemediğiniz Yiyecekler':    'cnt_dislikes',
+    'Yemem':                              'cnt_dislikes',
+    'Alerji / İntolerans':                'cnt_allergy',
+    'Alerji ve İntolerans':               'cnt_allergy',
+    'Besin Alerjisi':                     'cnt_allergy',
+    'Email':                              null,
   };
   let filled = 0;
   Object.keys(data).forEach(key => {
