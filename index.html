@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AKD">
+<meta name="theme-color" content="#6366f1">
+<title>AKD – Asistan Klinik Diyetisyen</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  * { font-family: 'Inter', system-ui, sans-serif; }
+  body { background: #f1f5f9; }
+  .card { background: #fff; border-radius: 16px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .input { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 8px 11px; font-size: 13px; outline: none; background: #f8fafc; transition: border-color .15s; }
+  .input:focus { border-color: #6366f1; background: #fff; }
+  select.input { cursor: pointer; }
+  .tab-btn { transition: all .15s; }
+  .active-tab { background: #6366f1 !important; color: #fff !important; border-color: #6366f1 !important; }
+  .tab-content { animation: fadeIn .18s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .section-title { font-weight: 800; font-size: 13px; color: #334155; display: flex; align-items: center; gap: 7px; }
+  .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 8px; }
+  .lab-item label { font-size: 11px; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px; }
+  .lab-item input { text-align: right; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .badge-ref { font-size: 10px; color: #94a3b8; font-weight: 500; }
+  .pill-left { display: flex; align-items: center; justify-content: center; border-radius: 12px; padding: 10px 12px; font-weight: 800; font-size: 12px; min-width: 130px; text-align: center; border: 1.5px solid; }
+  .pill-right { flex: 1; display: flex; align-items: center; border-radius: 12px; padding: 10px 14px; font-weight: 600; font-size: 12px; border: 1.5px solid; }
+  @media print { nav, footer, .no-print { display: none !important; } }
+  :root { --sat: env(safe-area-inset-top,0px); --sab: env(safe-area-inset-bottom,0px); }
+  .pt-safe { padding-top: var(--sat); }
+  .pb-safe { padding-bottom: var(--sab); }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ══════════════════ HEADER ══════════════════ -->
+<header class="bg-gradient-to-r from-indigo-700 to-violet-700 text-white px-5 py-3 flex items-center justify-between shadow-md pt-safe no-print">
+  <div>
+    <h1 class="text-white font-black text-lg tracking-tight">AKD</h1>
+    <p class="text-indigo-200 text-[11px] font-medium">Asistan Klinik Diyetisyen · Kanıta Dayalı Beslenme</p>
+  </div>
+  <div class="flex items-center gap-2">
+    <div id="client_badge" class="hidden text-right">
+      <p id="client_badge_name" class="text-white font-bold text-sm"></p>
+      <p id="client_badge_detail" class="text-indigo-200 text-[11px]"></p>
+    </div>
+    <select id="client_selector" onchange="loadClient()" class="bg-white/15 text-white text-xs border border-white/30 rounded-xl px-3 py-1.5 outline-none cursor-pointer">
+      <option value="">— Danışan Seç —</option>
+    </select>
+    <button onclick="newClient()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-xl font-semibold border border-white/30 transition">
+      <i class="fa-solid fa-plus mr-1"></i>Yeni
+    </button>
+  </div>
+</header>
+
+<!-- ══════════════════ NAV ══════════════════ -->
+<nav class="bg-white border-b border-slate-200 px-4 py-2 no-print sticky top-0 z-10 shadow-sm">
+  <div class="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+    <button onclick="switchTab('cl')" id="nav-cl" class="tab-btn active-tab px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap">
+      <i class="fa-solid fa-user-circle text-sm"></i> <span class="hidden sm:inline">1.</span> Danışan
+    </button>
+    <button onclick="switchTab('en')" id="nav-en" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+      <i class="fa-solid fa-calculator text-sm"></i> <span class="hidden sm:inline">2.</span> Enerji
+    </button>
+    <button onclick="switchTab('dg')" id="nav-dg" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+      <i class="fa-solid fa-utensils text-sm"></i> <span class="hidden sm:inline">3.</span> Menü
+    </button>
+    <button onclick="switchTab('tn')" id="nav-tn" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+      <i class="fa-solid fa-weight-scale text-sm"></i> <span class="hidden sm:inline">4.</span> Tanita
+    </button>
+    <button onclick="switchTab('sp')" id="nav-sp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+      <i class="fa-solid fa-pills text-sm text-purple-500"></i> <span class="hidden sm:inline">5.</span> Supp. Protokol
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════ MAIN ══════════════════ -->
+<main class="max-w-2xl mx-auto px-4 py-5 space-y-5 pb-safe">
+
+<!-- ════ TAB 1: DANIŞAN KAYDI ════ -->
+<section id="tab-cl" class="tab-content space-y-5">
+
+  <!-- Google Form Entegrasyonu -->
+  <div class="card bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 space-y-3">
+    <h3 class="section-title"><i class="fa-brands fa-google text-indigo-600"></i> Google Form'dan Otomatik Doldur</h3>
+    <p class="text-xs text-slate-500">Danışanın formu doldurmasının ardından en son yanıtı çekin — kişisel bilgiler otomatik dolacak.</p>
+    <div class="flex gap-2">
+      <input id="gform_script_url" type="text" class="input flex-1 text-xs"
+        placeholder="Apps Script URL (exec linki)"
+        value="https://script.google.com/macros/s/AKfycbxO2fPxDc9HRDkI93UVh6i9ADdtp5qenpADDQ2ZTsaurtGwC83op2YWw6CIyEVl1OLr/exec">
+      <button onclick="fetchGoogleForm()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition flex items-center gap-1.5 whitespace-nowrap">
+        <i class="fa-solid fa-cloud-arrow-down"></i> Çek
+      </button>
+    </div>
+    <div id="gform_status" class="hidden text-xs rounded-xl px-3 py-2 font-semibold"></div>
+    <!-- Form linki QR -->
+    <details class="text-xs text-indigo-600">
+      <summary class="cursor-pointer font-semibold">📋 Form linki</summary>
+      <div class="mt-2 p-2 bg-white rounded-xl border border-indigo-100 break-all select-all text-slate-600">https://forms.gle/WTwsAp97r9csjWpz8</div>
+    </details>
+  </div>
+
+  <!-- Temel Bilgiler -->
+  <div class="card space-y-4">
+    <h3 class="section-title"><i class="fa-solid fa-user text-indigo-600"></i> Danışan Bilgileri</h3>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="col-span-2">
+        <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">Ad Soyad</label>
+        <input id="cnt_name" type="text" class="input mt-1" placeholder="Danışan adı">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">Doğum Tarihi</label>
+        <input id="cnt_dob" type="date" class="input mt-1">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">Yaş</label>
+        <input id="cnt_age" type="number" class="input mt-1" placeholder="yıl" min="1" max="120">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">Cinsiyet</label>
+        <select id="cnt_sex" class="input mt-1">
+          <option value="K">Kadın</option>
+          <option value="E">Erkek</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">Medeni Durum</label>
+        <select id="cnt_civil" class="input mt-1">
+          <option value="">—</option>
+          <option>Bekar</option>
+          <option>Evli</option>
+          <option>Boşanmış</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">Meslek</label>
+        <input id="cnt_job" type="text" class="input mt-1" placeholder="ör. Öğretmen">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">Telefon</label>
+        <input id="cnt_phone" type="tel" class="input mt-1" placeholder="05xx xxx xx xx">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">İlk Görüşme</label>
+        <input id="cnt_date" type="date" class="input mt-1">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">Referans</label>
+        <input id="cnt_ref" type="text" class="input mt-1" placeholder="ör. Dr. Ahmet">
+      </div>
+    </div>
+  </div>
+
+  <!-- Antropometri -->
+  <div class="card space-y-4">
+    <h3 class="section-title"><i class="fa-solid fa-ruler text-indigo-600"></i> Antropometri</h3>
+    <div class="grid grid-cols-3 gap-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Boy (cm)</label>
+        <input id="cnt_height" type="number" class="input mt-1" placeholder="170">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Kilo (kg)</label>
+        <input id="cnt_weight" type="number" class="input mt-1" step="0.1" placeholder="70.0">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Hedef Kilo</label>
+        <input id="cnt_goal_wt" type="number" class="input mt-1" step="0.1" placeholder="65.0">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Bel (cm)</label>
+        <input id="cnt_waist" type="number" class="input mt-1" step="0.1" placeholder="80">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Kalça (cm)</label>
+        <input id="cnt_hip" type="number" class="input mt-1" step="0.1" placeholder="95">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Boyun (cm)</label>
+        <input id="cnt_neck" type="number" class="input mt-1" step="0.1" placeholder="35">
+      </div>
+    </div>
+    <!-- VKİ sonuçları -->
+    <div id="bmi_result" class="hidden bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-xs space-y-1">
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-indigo-900">VKİ</span>
+        <span id="bmi_val" class="font-black text-indigo-700 text-base"></span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-slate-500">Sınıflandırma</span>
+        <span id="bmi_class" class="font-bold"></span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-slate-500">Bel/Boy oranı</span>
+        <span id="whr_val" class="font-bold"></span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-slate-500">İdeal kilo aralığı</span>
+        <span id="ideal_wt" class="font-semibold text-slate-700"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Başvuru Nedeni & Şikayetler -->
+  <div class="card space-y-4">
+    <h3 class="section-title"><i class="fa-solid fa-stethoscope text-indigo-600"></i> Başvuru & Şikayetler</h3>
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">Başvuru Nedeni</label>
+      <input id="cnt_complaint" type="text" class="input mt-1" placeholder="ör. Kilo vermek istiyorum, yorgunluk">
+    </div>
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">Hedef / Beklenti</label>
+      <textarea id="cnt_goal" rows="2" class="input mt-1" placeholder="Danışanın hedefi ve beklentisi"></textarea>
+    </div>
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold block mb-2">Tanı / Hastalık Geçmişi</label>
+      <div class="grid grid-cols-2 gap-1.5">
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_obez" class="accent-indigo-600"> Obezite / Fazla Kilo
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_dm2" class="accent-indigo-600"> Tip 2 Diyabet
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_ir" class="accent-indigo-600"> İnsülin Direnci
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_ht" class="accent-indigo-600"> Hipertansiyon
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_dislip" class="accent-indigo-600"> Dislipidemi
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_pkos" class="accent-indigo-600"> PKOS
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_hipo" class="accent-indigo-600"> Hipotiroidi
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_hiper" class="accent-indigo-600"> Hipertiroidi
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_anemi" class="accent-indigo-600"> Anemi / Demir Eksikliği
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_osteo" class="accent-indigo-600"> Osteoporoz/Osteopeni
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_ibs" class="accent-indigo-600"> İBS / GI Sorun
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_ye" class="accent-indigo-600"> Yeme Bozukluğu
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_dm1" class="accent-indigo-600"> Tip 1 Diyabet
+        </label>
+        <label class="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-lg hover:bg-slate-50 border border-slate-100">
+          <input type="checkbox" id="dx_celiac" class="accent-indigo-600"> Çölyak / Glüten
+        </label>
+      </div>
+      <input id="dx_other" type="text" class="input mt-2" placeholder="Diğer tanılar...">
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Kullandığı İlaçlar</label>
+        <textarea id="cnt_meds" rows="2" class="input mt-1" placeholder="İlaç adı, dozu, zamanı"></textarea>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Aile Geçmişi</label>
+        <textarea id="cnt_family" rows="2" class="input mt-1" placeholder="Ailede hastalık"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Laboratuvar Değerleri -->
+  <div class="card space-y-4">
+    <h3 class="section-title"><i class="fa-solid fa-flask text-indigo-600"></i> Laboratuvar Değerleri</h3>
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">Test Tarihi</label>
+      <input id="lab_date" type="date" class="input mt-1" style="max-width:160px">
+    </div>
+
+    <!-- Glisemik Panel -->
+    <div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Glisemik Panel</p>
+      <div class="lab-grid">
+        <div class="lab-item">
+          <label>Açlık Glukozu <span class="badge-ref">(mg/dL)</span></label>
+          <input id="lab_glu" type="number" class="input" placeholder="80–99">
+        </div>
+        <div class="lab-item">
+          <label>HbA1c <span class="badge-ref">(%)</span></label>
+          <input id="lab_hba1c" type="number" step="0.1" class="input" placeholder="&lt;5.7">
+        </div>
+        <div class="lab-item">
+          <label>Açlık İnsülini <span class="badge-ref">(µU/mL)</span></label>
+          <input id="lab_ins" type="number" step="0.1" class="input" placeholder="2–25">
+        </div>
+        <div class="lab-item">
+          <label>HOMA-IR</label>
+          <input id="lab_homa" type="number" step="0.01" class="input" placeholder="&lt;2.5">
+        </div>
+      </div>
+      <div id="lab_glycemic_comment" class="hidden mt-2 p-2 rounded-lg text-xs"></div>
+    </div>
+
+    <!-- Lipid Paneli -->
+    <div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Lipid Paneli</p>
+      <div class="lab-grid">
+        <div class="lab-item">
+          <label>Total Kolesterol <span class="badge-ref">(mg/dL)</span></label>
+          <input id="lab_tc" type="number" class="input" placeholder="&lt;200">
+        </div>
+        <div class="lab-item">
+          <label>LDL-K <span class="badge-ref">(mg/dL)</span></label>
+          <input id="lab_ldl" type="number" class="input" placeholder="&lt;100">
+        </div>
+        <div class="lab-item">
+          <label>HDL-K <span class="badge-ref">(mg/dL)</span></label>
+          <input id="lab_hdl" type="number" class="input" placeholder="K≥50 E≥40">
+        </div>
+        <div class="lab-item">
+          <label>Trigliserit <span class="badge-ref">(mg/dL)</span></label>
+          <input id="lab_tg" type="number" class="input" placeholder="&lt;150">
+        </div>
+      </div>
+    </div>
+
+    <!-- Tiroid -->
+    <div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Tiroid</p>
+      <div class="lab-grid">
+        <div class="lab-item">
+          <label>TSH <span class="badge-ref">(µIU/mL)</span></label>
+          <input id="lab_tsh" type="number" step="0.01" class="input" placeholder="0.4–4.0">
+        </div>
+        <div class="lab-item">
+          <label>Serbest T4 <span class="badge-ref">(ng/dL)</span></label>
+          <input id="lab_ft4" type="number" step="0.01" class="input" placeholder="0.8–1.8">
+        </div>
+        <div class="lab-item">
+          <label>Serbest T3 <span class="badge-ref">(pg/mL)</span></label>
+          <input id="lab_ft3" type="number" step="0.1" class="input" placeholder="2.3–4.2">
+        </div>
+      </div>
+    </div>
+
+    <!-- Hematoloji / Demir -->
+    <div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Hematoloji & Demir Metabolizması</p>
+      <div class="lab-grid">
+        <div class="lab-item">
+          <label>Hemoglobin <span class="badge-ref">(g/dL)</span></label>
+          <input id="lab_hgb" type="number" step="0.1" class="input" placeholder="K≥12 E≥13">
+        </div>
+        <div class="lab-item">
+          <label>Ferritin <span class="badge-ref">(ng/mL)</span></label>
+          <input id="lab_ferritin" type="number" step="0.1" class="input" placeholder="20–200">
+        </div>
+        <div class="lab-item">
+          <label>Serum Demir <span class="badge-ref">(µg/dL)</span></label>
+          <input id="lab_fe" type="number" class="input" placeholder="60–170">
+        </div>
+        <div class="lab-item">
+          <label>TDBK <span class="badge-ref">(µg/dL)</span></label>
+          <input id="lab_tibc" type="number" class="input" placeholder="250–370">
+        </div>
+      </div>
+    </div>
+
+    <!-- Vitaminler & Mineraller -->
+    <div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Vitaminler & Mineraller</p>
+      <div class="lab-grid">
+        <div class="lab-item">
+          <label>25-OH D Vitamini <span class="badge-ref">(ng/mL)</span></label>
+          <input id="lab_vitd" type="number" step="0.1" class="input" placeholder="30–100">
+        </div>
+        <div class="lab-item">
+          <label>B12 Vitamini <span class="badge-ref">(pg/mL)</span></label>
+          <input id="lab_b12" type="number" class="input" placeholder="200–900">
+        </div>
+        <div class="lab-item">
+          <label>Folat <span class="badge-ref">(ng/mL)</span></label>
+          <input id="lab_folat" type="number" step="0.1" class="input" placeholder="≥4">
+        </div>
+        <div class="lab-item">
+          <label>Magnezyum <span class="badge-ref">(mg/dL)</span></label>
+          <input id="lab_mg" type="number" step="0.01" class="input" placeholder="1.7–2.2">
+        </div>
+        <div class="lab-item">
+          <label>Çinko <span class="badge-ref">(µg/dL)</span></label>
+          <input id="lab_zn" type="number" class="input" placeholder="70–120">
+        </div>
+        <div class="lab-item">
+          <label>Kalsiyum <span class="badge-ref">(mg/dL)</span></label>
+          <input id="lab_ca" type="number" step="0.1" class="input" placeholder="8.5–10.2">
+        </div>
+      </div>
+    </div>
+
+    <!-- Karaciğer / Böbrek -->
+    <div>
+      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Karaciğer & Böbrek</p>
+      <div class="lab-grid">
+        <div class="lab-item">
+          <label>ALT <span class="badge-ref">(U/L)</span></label>
+          <input id="lab_alt" type="number" class="input" placeholder="K&lt;35 E&lt;45">
+        </div>
+        <div class="lab-item">
+          <label>AST <span class="badge-ref">(U/L)</span></label>
+          <input id="lab_ast" type="number" class="input" placeholder="&lt;40">
+        </div>
+        <div class="lab-item">
+          <label>Kreatinin <span class="badge-ref">(mg/dL)</span></label>
+          <input id="lab_creat" type="number" step="0.01" class="input" placeholder="K 0.5–1.1">
+        </div>
+        <div class="lab-item">
+          <label>GFR <span class="badge-ref">(mL/dk)</span></label>
+          <input id="lab_gfr" type="number" class="input" placeholder="≥60">
+        </div>
+        <div class="lab-item">
+          <label>Ürik Asit <span class="badge-ref">(mg/dL)</span></label>
+          <input id="lab_ua" type="number" step="0.1" class="input" placeholder="K 2.4–6 E 3.4–7">
+        </div>
+        <div class="lab-item">
+          <label>CRP <span class="badge-ref">(mg/L)</span></label>
+          <input id="lab_crp" type="number" step="0.1" class="input" placeholder="&lt;5">
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab Yorum Kutusu -->
+    <div id="lab_comments" class="hidden space-y-1.5"></div>
+  </div>
+
+  <!-- Fiziksel Aktivite -->
+  <div class="card space-y-3">
+    <h3 class="section-title"><i class="fa-solid fa-person-walking text-indigo-600"></i> Fiziksel Aktivite</h3>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Aktivite Düzeyi (PAL)</label>
+        <select id="cnt_pal" class="input mt-1">
+          <option value="1.2">Sedanter — masabaşı, yürüyüş yok</option>
+          <option value="1.375">Hafif Aktif — haftada 1–3 gün hafif egzersiz</option>
+          <option value="1.55" selected>Orta Aktif — haftada 3–5 gün orta egzersiz</option>
+          <option value="1.725">Aktif — haftada 6–7 gün yoğun egzersiz</option>
+          <option value="1.9">Çok Aktif — ağır fiziksel iş veya 2× antrenman</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Egzersiz Türü</label>
+        <input id="cnt_ex_type" type="text" class="input mt-1" placeholder="ör. Yürüyüş, pilates">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Haftalık Süre</label>
+        <input id="cnt_ex_dur" type="text" class="input mt-1" placeholder="ör. 3×45 dk">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Adım Sayısı / Gün</label>
+        <input id="cnt_steps" type="number" class="input mt-1" placeholder="ör. 8000">
+      </div>
+    </div>
+  </div>
+
+  <!-- Beslenme Alışkanlıkları -->
+  <div class="card space-y-3">
+    <h3 class="section-title"><i class="fa-solid fa-apple-whole text-indigo-600"></i> Beslenme Alışkanlıkları</h3>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Günlük Öğün Sayısı</label>
+        <select id="cnt_meals" class="input mt-1">
+          <option>1</option><option>2</option><option selected>3</option>
+          <option>4</option><option>5</option><option>6</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Atlanan Öğün</label>
+        <input id="cnt_skip" type="text" class="input mt-1" placeholder="ör. Kahvaltı">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Diyet Tipi</label>
+        <select id="cnt_diet_type" class="input mt-1">
+          <option value="">Omnivör (standart)</option>
+          <option>Vejetaryen</option>
+          <option>Vegan</option>
+          <option>Pescatarian</option>
+          <option>Glutensiz</option>
+          <option>Laktosuz</option>
+          <option>Akdeniz</option>
+          <option>Düşük Karbonhidrat</option>
+          <option>Ketojenik</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Günlük Su Tüketimi</label>
+        <input id="cnt_water" type="text" class="input mt-1" placeholder="ör. 1.5 L">
+      </div>
+    </div>
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">Alerji / İntolerans</label>
+      <input id="cnt_allergy" type="text" class="input mt-1" placeholder="ör. Laktoz intoleransı, fındık alerjisi">
+    </div>
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">Sevmediği / Yemediği Besinler</label>
+      <input id="cnt_dislikes" type="text" class="input mt-1" placeholder="ör. Balık, brokoli">
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Alkol Tüketimi</label>
+        <select id="cnt_alcohol" class="input mt-1">
+          <option>Kullanmıyor</option>
+          <option>Nadiren</option>
+          <option>Haftada 1–2</option>
+          <option>Düzenli</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Sigara</label>
+        <select id="cnt_smoke" class="input mt-1">
+          <option>Kullanmıyor</option>
+          <option>Bıraktı</option>
+          <option>Kullanıyor</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">GI Şikayetler</label>
+      <input id="cnt_gi" type="text" class="input mt-1" placeholder="ör. Şişkinlik, kabızlık, reflü">
+    </div>
+  </div>
+
+  <!-- Yeme Bozuklukları (koşullu) -->
+  <div class="card space-y-3 border-2 border-rose-100">
+    <h3 class="section-title"><i class="fa-solid fa-heart-pulse text-rose-600"></i> Yeme Davranışı Değerlendirmesi</h3>
+    <p class="text-xs text-slate-500">Bu bölüm yeme bozukluğu riski olan danışanlar için doldurulur.</p>
+    <div class="space-y-2">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Yeme ile ilişki</label>
+        <select id="ye_rel" class="input mt-1">
+          <option value="">—</option>
+          <option>Normal — sorun yok</option>
+          <option>Duygusal yeme var</option>
+          <option>Kısıtlayıcı/kontrollü yeme</option>
+          <option>Tıkınma atakları var</option>
+          <option>Telafi davranışları var (kusma, laksatif vb.)</option>
+          <option>Karışık tablo</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-[11px] text-slate-500 font-semibold">Vücut imajı</label>
+          <select id="ye_body" class="input mt-1">
+            <option value="">—</option>
+            <option>Olumlu / Nötr</option>
+            <option>Hafif olumsuz</option>
+            <option>Belirgin rahatsızlık</option>
+            <option>Ciddi distorsiyon</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] text-slate-500 font-semibold">Psikiyatrik destek</label>
+          <select id="ye_psych" class="input mt-1">
+            <option value="">—</option>
+            <option>Hayır</option>
+            <option>Aktif takip var</option>
+            <option>Gerekiyor (yönlendirilecek)</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Klinisyen Notu</label>
+        <textarea id="ye_note" rows="2" class="input mt-1" placeholder="Yeme bozukluğu ile ilgili özel notlar, risk faktörleri"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notlar & Kaydet -->
+  <div class="card space-y-3">
+    <h3 class="section-title"><i class="fa-solid fa-notes-medical text-indigo-600"></i> Klinik Notlar</h3>
+    <textarea id="cnt_notes" rows="4" class="input" placeholder="Genel klinik notlar, özel durumlar, yaklaşım notları..."></textarea>
+    <div class="flex gap-2">
+      <button onclick="saveClient()" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+        <i class="fa-solid fa-floppy-disk"></i> Danışanı Kaydet
+      </button>
+      <button onclick="deleteClient()" class="px-4 py-2.5 bg-red-50 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-100 transition border border-red-100">
+        <i class="fa-solid fa-trash-can"></i>
+      </button>
+    </div>
+    <p id="save_msg" class="text-xs text-center text-emerald-600 font-semibold hidden"></p>
+  </div>
+
+</section>
+
+<!-- ════ TAB 2: ENERJİ & MAKRO ════ -->
+<section id="tab-en" class="tab-content hidden space-y-5">
+
+  <div class="card space-y-4">
+    <h3 class="section-title"><i class="fa-solid fa-fire-flame-curved text-orange-500"></i> Enerji İhtiyacı Hesabı</h3>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Formül</label>
+        <select id="en_formula" class="input mt-1" onchange="calcEnergy()">
+          <option value="mifflin">Mifflin-St Jeor (standart)</option>
+          <option value="harris">Harris-Benedict (revize)</option>
+          <option value="cunningham">Cunningham (FFM gerektirir)</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Kalori Hedefi</label>
+        <select id="en_goal" class="input mt-1" onchange="calcEnergy()">
+          <option value="-500">Kilo Verme (–500 kcal/gün)</option>
+          <option value="-250">Hafif Kilo Verme (–250 kcal/gün)</option>
+          <option value="0" selected>Koruma (TEE)</option>
+          <option value="250">Hafif Kilo Alma (+250 kcal/gün)</option>
+          <option value="500">Kilo Alma (+500 kcal/gün)</option>
+          <option value="custom">Özel</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Yağ Yüzdesi (BIA)</label>
+        <input id="en_bf" type="number" step="0.1" class="input mt-1" placeholder="%" onchange="calcEnergy()">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Özel Kalori Hedefi</label>
+        <input id="en_custom_kcal" type="number" class="input mt-1" placeholder="kcal" onchange="calcEnergy()">
+      </div>
+    </div>
+
+    <!-- Sonuçlar -->
+    <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 space-y-3">
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-white rounded-xl p-3 shadow-sm">
+          <p class="text-[11px] text-slate-400 font-semibold">İstirahat Metabolizma</p>
+          <p id="en_rmr" class="text-lg font-black text-slate-700">—</p>
+          <p class="text-[11px] text-orange-500">kcal/gün</p>
+        </div>
+        <div class="bg-white rounded-xl p-3 shadow-sm">
+          <p class="text-[11px] text-slate-400 font-semibold">Toplam Enerji (TEE)</p>
+          <p id="en_tee" class="text-lg font-black text-slate-700">—</p>
+          <p class="text-[11px] text-orange-500">kcal/gün</p>
+        </div>
+        <div class="bg-white rounded-xl p-3 shadow-sm border-2 border-indigo-200">
+          <p class="text-[11px] text-slate-400 font-semibold">Hedef Kalori</p>
+          <p id="en_target" class="text-lg font-black text-indigo-700">—</p>
+          <p class="text-[11px] text-indigo-500">kcal/gün</p>
+        </div>
+      </div>
+
+      <!-- Makro -->
+      <div>
+        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">Makro Dağılımı</p>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] text-slate-500 font-semibold">Karbonhidrat (%)</label>
+            <input id="en_cho_pct" type="number" value="45" min="20" max="65" class="input mt-1" onchange="calcMacro()">
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-500 font-semibold">Protein (g/kg)</label>
+            <input id="en_pro_gkg" type="number" value="1.2" step="0.1" min="0.8" max="2.5" class="input mt-1" onchange="calcMacro()">
+          </div>
+        </div>
+        <div id="macro_result" class="mt-3 grid grid-cols-3 gap-2 text-center hidden">
+          <div class="bg-yellow-50 rounded-xl p-2.5 border border-yellow-100">
+            <p class="text-[10px] text-slate-500 font-semibold">Karbonhidrat</p>
+            <p id="macro_cho" class="font-black text-yellow-700 text-sm"></p>
+          </div>
+          <div class="bg-red-50 rounded-xl p-2.5 border border-red-100">
+            <p class="text-[10px] text-slate-500 font-semibold">Protein</p>
+            <p id="macro_pro" class="font-black text-red-700 text-sm"></p>
+          </div>
+          <div class="bg-blue-50 rounded-xl p-2.5 border border-blue-100">
+            <p class="text-[10px] text-slate-500 font-semibold">Yağ (%25)</p>
+            <p id="macro_fat" class="font-black text-blue-700 text-sm"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Klinik Öneriler -->
+    <div id="en_clin_recs" class="hidden space-y-2"></div>
+  </div>
+
+  <!-- Haftalık Kilo Yönetimi -->
+  <div class="card space-y-3">
+    <h3 class="section-title"><i class="fa-solid fa-chart-line text-indigo-600"></i> Kilo Yönetimi Hedefleri</h3>
+    <div id="weight_plan" class="text-xs text-slate-500 italic">Danışan bilgileri girilince hesaplanır.</div>
+  </div>
+
+</section>
+
+<!-- ════ TAB 3: MENÜ PLANLAMA ════ -->
+<section id="tab-dg" class="tab-content hidden space-y-5">
+
+  <div class="card space-y-4">
+    <h3 class="section-title"><i class="fa-solid fa-utensils text-indigo-600"></i> Menü Planlama</h3>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Toplam Kalori</label>
+        <input id="mn_kcal" type="number" class="input mt-1" placeholder="kcal/gün">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Öğün Sayısı</label>
+        <select id="mn_meals" class="input mt-1" onchange="renderMenuForm()">
+          <option value="3">3 Ana öğün</option>
+          <option value="5">3 Ana + 2 Ara öğün</option>
+          <option value="6">3 Ana + 3 Ara öğün</option>
+        </select>
+      </div>
+    </div>
+    <div id="menu_form" class="space-y-3"></div>
+    <textarea id="mn_notes" rows="3" class="input" placeholder="Menü notları, tarifler, özel açıklamalar..."></textarea>
+  </div>
+
+  <!-- Besin Değişim Listeleri -->
+  <div class="card space-y-3">
+    <h3 class="section-title"><i class="fa-solid fa-list-ul text-indigo-600"></i> Besin Değişim Listeleri</h3>
+    <div class="grid grid-cols-2 gap-2">
+      <button onclick="toggleExchange('ekmek')" class="text-xs py-2 px-3 bg-yellow-50 border border-yellow-200 rounded-xl font-semibold text-yellow-800 hover:bg-yellow-100 transition">🍞 Ekmek & Tahıl</button>
+      <button onclick="toggleExchange('et')" class="text-xs py-2 px-3 bg-red-50 border border-red-200 rounded-xl font-semibold text-red-800 hover:bg-red-100 transition">🥩 Et & Protein</button>
+      <button onclick="toggleExchange('sut')" class="text-xs py-2 px-3 bg-blue-50 border border-blue-200 rounded-xl font-semibold text-blue-800 hover:bg-blue-100 transition">🥛 Süt & Ürünleri</button>
+      <button onclick="toggleExchange('sebze')" class="text-xs py-2 px-3 bg-green-50 border border-green-200 rounded-xl font-semibold text-green-800 hover:bg-green-100 transition">🥦 Sebzeler</button>
+      <button onclick="toggleExchange('meyve')" class="text-xs py-2 px-3 bg-orange-50 border border-orange-200 rounded-xl font-semibold text-orange-800 hover:bg-orange-100 transition">🍎 Meyveler</button>
+      <button onclick="toggleExchange('yag')" class="text-xs py-2 px-3 bg-purple-50 border border-purple-200 rounded-xl font-semibold text-purple-800 hover:bg-purple-100 transition">🫒 Yağlar</button>
+    </div>
+    <div id="exchange_panel" class="hidden text-xs space-y-1 bg-slate-50 rounded-xl p-3 border border-slate-100"></div>
+  </div>
+
+</section>
+
+<!-- ════ TAB 4: TANİTA BIA ════ -->
+<section id="tab-tn" class="tab-content hidden space-y-5">
+
+  <!-- Tanita PDF Yükle -->
+  <div class="card bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-100 space-y-3">
+    <h3 class="section-title"><i class="fa-solid fa-file-pdf text-teal-600"></i> Tanita PDF'ten Otomatik Doldur</h3>
+    <p class="text-xs text-slate-500">Tanita cihazından aldığınız PDF çıktısını yükleyin — kişisel bilgiler ve BIA değerleri otomatik aktarılır, beslenme önerileri oluşturulur.</p>
+    <label class="flex flex-col items-center justify-center border-2 border-dashed border-teal-300 rounded-xl p-5 cursor-pointer hover:bg-teal-50 transition group" id="tanita_drop_zone">
+      <i class="fa-solid fa-cloud-arrow-up text-3xl text-teal-400 group-hover:text-teal-600 transition mb-2"></i>
+      <span class="text-sm font-semibold text-teal-700">PDF dosyasını buraya sürükleyin</span>
+      <span class="text-xs text-slate-400 mt-1">veya tıklayarak seçin (Tanita segmental analiz çıktısı)</span>
+      <input id="tanita_pdf_input" type="file" accept=".pdf" class="hidden" onchange="parseTanitaPDF(this.files[0])">
+    </label>
+    <div id="tanita_parse_status" class="hidden text-xs rounded-xl px-3 py-2 font-semibold"></div>
+    <!-- Tanita Beslenme Önerileri -->
+    <div id="tanita_recs" class="hidden space-y-2"></div>
+  </div>
+
+  <div class="card space-y-4">
+    <h3 class="section-title"><i class="fa-solid fa-weight-scale text-indigo-600"></i> Tanita BIA Ölçüm Sonuçları</h3>
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">Ölçüm Tarihi</label>
+      <input id="tn_date" type="date" class="input mt-1" style="max-width:160px">
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Yağ Kütlesi (kg)</label>
+        <input id="tn_fm" type="number" step="0.1" class="input mt-1" placeholder="kg">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Yağ Yüzdesi (%)</label>
+        <input id="tn_bf" type="number" step="0.1" class="input mt-1" placeholder="%" onchange="calcBIA()">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Yağsız Kütle (kg)</label>
+        <input id="tn_ffm" type="number" step="0.1" class="input mt-1" placeholder="kg">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Kas Kütlesi (kg)</label>
+        <input id="tn_mm" type="number" step="0.1" class="input mt-1" placeholder="kg">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Toplam Su (%)</label>
+        <input id="tn_tbw" type="number" step="0.1" class="input mt-1" placeholder="%">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Viseral Yağ Puanı</label>
+        <input id="tn_vfa" type="number" class="input mt-1" placeholder="1–59">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Bazal Metabolizma (kcal)</label>
+        <input id="tn_bmr" type="number" class="input mt-1" placeholder="kcal">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Kemik Kütlesi (kg)</label>
+        <input id="tn_bm" type="number" step="0.1" class="input mt-1" placeholder="kg">
+      </div>
+    </div>
+
+    <!-- BIA Değerlendirme -->
+    <div id="bia_eval" class="hidden bg-indigo-50 border border-indigo-100 rounded-xl p-4 space-y-2 text-xs"></div>
+  </div>
+
+  <!-- Geçmiş Ölçümler -->
+  <div class="card space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="section-title"><i class="fa-solid fa-chart-area text-indigo-600"></i> Ölçüm Geçmişi</h3>
+      <button onclick="saveBIARecord()" class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition">
+        <i class="fa-solid fa-floppy-disk mr-1"></i>Kaydet
+      </button>
+    </div>
+    <div id="bia_history" class="space-y-2 text-xs text-slate-400">Henüz kayıt yok.</div>
+    <textarea id="tn_notes" rows="2" class="input" placeholder="BIA yorumu, danışana aktarılacak mesaj..."></textarea>
+  </div>
+
+</section>
+
+<!-- ════ TAB 5: SUPPLEMENT PROTOKOL ════ -->
+<section id="tab-sp" class="tab-content hidden space-y-5">
+
+  <div class="card">
+    <h3 class="section-title"><i class="fa-solid fa-pills text-purple-600"></i> Supplement Protokol</h3>
+    <p class="text-xs text-slate-500 mt-1">Danışana klinik olarak önerilen takviye maddeleri ve zamanlama protokolü.</p>
+  </div>
+
+  <!-- Klinik Tanıya Göre Öneri -->
+  <div id="supp_clin_recs" class="hidden card space-y-2 bg-purple-50 border border-purple-100">
+    <p class="text-[11px] font-bold text-purple-800 uppercase tracking-wide flex items-center gap-1.5">
+      <i class="fa-solid fa-lightbulb text-purple-500"></i> Tanıya Göre Öneri
+    </p>
+    <div id="supp_clin_list" class="space-y-1"></div>
+  </div>
+
+  <!-- Supplement Ekle -->
+  <div class="card space-y-4">
+    <h4 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+      <i class="fa-solid fa-plus-circle text-purple-500"></i> Supplement Ekle
+    </h4>
+    <div>
+      <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Hızlı Seçim</p>
+      <div class="flex flex-wrap gap-1.5">
+        <button onclick="suppQuickAdd('D Vitamini (Günlük)','vitamin','Haftada 5 Gün Tok Karna · 1 Tablet')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">D Vitamini (Günlük)</button>
+        <button onclick="suppQuickAdd('D Vitamini (Depo)','vitamin','Haftada 2 Tok Karna · 1 Tablet')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">D Vitamini (Depo)</button>
+        <button onclick="suppQuickAdd('B12 Vitamini','vitamin','Kahvaltıdan Sonra · 1 Tablet')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">B12 Vitamini</button>
+        <button onclick="suppQuickAdd('Folat (B9)','vitamin','Kahvaltıdan Sonra · 1 Tablet')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">Folat (B9)</button>
+        <button onclick="suppQuickAdd('C Vitamini','vitamin','Öğle Yemeğiyle · 500 mg')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">C Vitamini</button>
+        <button onclick="suppQuickAdd('Demir','mineral','Haftanın Tek Günleri · 1 Tablet')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Demir</button>
+        <button onclick="suppQuickAdd('Magnezyum','mineral','Öğleden Sonra 14:30–17:00 Arası · 1 Tablet')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Magnezyum</button>
+        <button onclick="suppQuickAdd('Çinko','mineral','Yatmadan Önce · 1 Tablet')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Çinko</button>
+        <button onclick="suppQuickAdd('Kalsiyum','mineral','Akşam Yemeğiyle Tok Karna · 1 Tablet')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Kalsiyum</button>
+        <button onclick="suppQuickAdd('Selenyum','mineral','Kahvaltıdan Sonra · 1 Tablet')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Selenyum</button>
+        <button onclick="suppQuickAdd('Omega-3','diger','Tok Karna 1 Kapsül (Öğle Civarı)')" class="px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition">Omega-3</button>
+        <button onclick="suppQuickAdd('Probiyotik','diger','Kahvaltıdan Sonra · 1 Kapsül')" class="px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition">Probiyotik</button>
+        <button onclick="suppQuickAdd('Krom Pikolinat','diger','Aç Karna · 1 Tablet')" class="px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition">Krom Pikolinat</button>
+        <button onclick="suppQuickAdd('Myo-İnositol','diger','Kahvaltı ve Akşam Yemeğiyle · 2g')" class="px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition">Myo-İnositol</button>
+        <button onclick="suppQuickAdd('Koenzim Q10','diger','Sabah Kahvaltısıyla · 1 Kapsül')" class="px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition">Koenzim Q10</button>
+        <button onclick="suppQuickAdd('N-Asetilsistein (NAC)','diger','Yemeklerle · 600 mg')" class="px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition">NAC</button>
+        <button onclick="suppQuickAdd('B Kompleks','vitamin','Kahvaltıdan Sonra · 1 Tablet')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">B Kompleks</button>
+      </div>
+    </div>
+    <div class="border-t border-slate-100 pt-3">
+      <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Manuel Ekle</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <label class="text-[11px] text-slate-500 font-medium">Supplement Adı</label>
+          <input id="supp_name" type="text" placeholder="ör. Demir" class="input mt-1" list="supp_name_list">
+          <datalist id="supp_name_list">
+            <option value="D Vitamini (Günlük)"><option value="D Vitamini (Depo)">
+            <option value="B12 Vitamini"><option value="Folat (B9)"><option value="C Vitamini">
+            <option value="Demir"><option value="Magnezyum"><option value="Çinko">
+            <option value="Kalsiyum"><option value="Selenyum"><option value="Omega-3">
+            <option value="Probiyotik"><option value="Krom Pikolinat"><option value="Myo-İnositol">
+            <option value="Koenzim Q10"><option value="NAC">
+          </datalist>
+        </div>
+        <div>
+          <label class="text-[11px] text-slate-500 font-medium">Zamanlama / Doz</label>
+          <input id="supp_timing" type="text" placeholder="ör. Tok Karna · 1 Tablet" class="input mt-1" list="supp_timing_list">
+          <datalist id="supp_timing_list">
+            <option value="Sabah Aç Karna · 1 Tablet">
+            <option value="Kahvaltıdan Sonra · 1 Tablet">
+            <option value="Kahvaltıdan Sonra · 1 Kapsül">
+            <option value="Öğle Yemeğiyle Tok Karna · 1 Tablet">
+            <option value="Öğleden Sonra 14:30–17:00 Arası · 1 Tablet">
+            <option value="Akşam Yemeğiyle Tok Karna · 1 Tablet">
+            <option value="Yatmadan Önce · 1 Tablet">
+            <option value="Haftada 5 Gün Tok Karna · 1 Tablet">
+            <option value="Haftada 2 Tok Karna · 1 Tablet">
+            <option value="Haftanın Tek Günleri · 1 Tablet">
+            <option value="Aç Karna · 1 Tablet">
+          </datalist>
+        </div>
+        <div>
+          <label class="text-[11px] text-slate-500 font-medium">Kategori</label>
+          <select id="supp_cat" class="input mt-1">
+            <option value="vitamin">Vitamin</option>
+            <option value="mineral">Mineral</option>
+            <option value="diger">Diğer</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="suppAddManual()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-bold hover:bg-purple-700 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-plus"></i> Listeye Ekle
+      </button>
+    </div>
+  </div>
+
+  <!-- Protokol Kartları -->
+  <div class="card space-y-3">
+    <div class="flex items-center justify-between">
+      <h4 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+        <i class="fa-solid fa-list-check text-purple-500"></i>
+        Mevcut Protokol
+        <span id="supp_count" class="text-[11px] font-normal text-slate-400"></span>
+      </h4>
+      <div class="flex gap-2">
+        <button onclick="suppGenPDF()" class="px-3 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-file-pdf"></i> PDF
+        </button>
+        <button onclick="suppClearAll()" class="px-3 py-1.5 bg-slate-100 text-slate-500 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+    </div>
+    <div id="supp_cards" class="space-y-2">
+      <p class="text-sm text-slate-400 text-center py-6 italic">Henüz supplement eklenmedi.</p>
+    </div>
+  </div>
+
+  <!-- Klinik Notlar -->
+  <div class="card bg-purple-50 border border-purple-100 text-xs text-purple-700 space-y-1">
+    <p class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Klinik Hatırlatıcılar</p>
+    <p>• Demir → C vitamini ile birlikte, süt/kahve/çaydan 2 saat uzakta alınmalı.</p>
+    <p>• D vitamini yağda çözünür — mutlaka tok karna alınmalı; Mg D3 biyoyararlanımını artırır.</p>
+    <p>• Myo-İnositol PKOS'ta insülin duyarlılığını destekler — kahvaltı + akşam yemeğiyle bölünmüş doz önerilir.</p>
+    <p>• NAC → antioksidan, glutatyon prekürsörü; öğünlerle alındığında mide toleransı artar.</p>
+    <p>• Probiyotik → antibiyotikten 2 saat sonra, tercihen kahvaltıdan sonra.</p>
+  </div>
+
+</section>
+
+</main>
+
+<!-- ══════════════════ FOOTER ══════════════════ -->
+<footer class="bg-white border-t border-slate-200 text-xs py-3 px-6 text-center text-slate-400 no-print pb-safe">
+  AKD v1.0 · Asistan Klinik Diyetisyen · Uzm. Dyt. Yunus Aksu
+</footer>
+
+<!-- ══════════════════ SCRIPTS ══════════════════ -->
+<script src="pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const N = id => { const v = parseFloat(($( id)||{}).value||''); return isNaN(v)?0:v; };
+const f = (v,d=1) => Number(v).toFixed(d);
+
+// PWA Service Worker
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+/* ══ DANIŞAN VERİTABANI ══ */
+let CL = JSON.parse(localStorage.getItem('akd_clients') || '[]');
+let curIdx = -1;
+
+const FIELDS = [
+  'cnt_name','cnt_dob','cnt_age','cnt_sex','cnt_civil','cnt_job','cnt_phone','cnt_date','cnt_ref',
+  'cnt_height','cnt_weight','cnt_goal_wt','cnt_waist','cnt_hip','cnt_neck',
+  'cnt_complaint','cnt_goal','cnt_meds','cnt_family','cnt_notes',
+  'dx_other','cnt_pal','cnt_ex_type','cnt_ex_dur','cnt_steps',
+  'cnt_meals','cnt_skip','cnt_diet_type','cnt_water','cnt_allergy','cnt_dislikes','cnt_alcohol','cnt_smoke','cnt_gi',
+  'ye_rel','ye_body','ye_psych','ye_note',
+  'lab_date','lab_glu','lab_hba1c','lab_ins','lab_homa',
+  'lab_tc','lab_ldl','lab_hdl','lab_tg',
+  'lab_tsh','lab_ft4','lab_ft3',
+  'lab_hgb','lab_ferritin','lab_fe','lab_tibc',
+  'lab_vitd','lab_b12','lab_folat','lab_mg','lab_zn','lab_ca',
+  'lab_alt','lab_ast','lab_creat','lab_gfr','lab_ua','lab_crp',
+  'en_formula','en_goal','en_bf','en_custom_kcal','en_cho_pct','en_pro_gkg',
+  'mn_kcal','mn_meals','mn_notes',
+  'tn_date','tn_fm','tn_bf','tn_ffm','tn_mm','tn_tbw','tn_vfa','tn_bmr','tn_bm','tn_notes'
+];
+
+const CHECKBOXES = ['dx_obez','dx_dm2','dx_ir','dx_ht','dx_dislip','dx_pkos',
+  'dx_hipo','dx_hiper','dx_anemi','dx_osteo','dx_ibs','dx_ye','dx_dm1','dx_celiac'];
+
+function collectForm() {
+  const d = {};
+  FIELDS.forEach(id => { const el = $(id); if (el) d[id] = el.value; });
+  CHECKBOXES.forEach(id => { const el = $(id); if (el) d[id] = el.checked; });
+  return d;
+}
+
+function fillForm(d) {
+  FIELDS.forEach(id => { const el = $(id); if (el && d[id] !== undefined) el.value = d[id]; });
+  CHECKBOXES.forEach(id => { const el = $(id); if (el && d[id] !== undefined) el.checked = !!d[id]; });
+}
+
+function clearForm() {
+  FIELDS.forEach(id => { const el = $(id); if (!el) return; el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = ''; });
+  CHECKBOXES.forEach(id => { const el = $(id); if (el) el.checked = false; });
+}
+
+function renderClientList() {
+  const sel = $('client_selector'); if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Danışan Seç —</option>';
+  CL.forEach((c, i) => {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = c.cnt_name || `Danışan ${i+1}`;
+    sel.appendChild(opt);
+  });
+  if (curIdx >= 0) sel.value = curIdx;
+}
+
+function loadClient() {
+  const sel = $('client_selector');
+  const idx = parseInt(sel.value);
+  if (isNaN(idx) || idx < 0) { curIdx = -1; clearForm(); suppLoad(); return; }
+  curIdx = idx;
+  fillForm(CL[idx]);
+  suppLoad();
+  updateBadge();
+  calcBMI(); calcEnergy(); calcBIA();
+  renderLabComments(); renderClinicalRecs();
+}
+
+function saveClient() {
+  const d = collectForm();
+  if (!d.cnt_name) { alert('Danışan adı gerekli.'); return; }
+  if (curIdx >= 0) { CL[curIdx] = d; }
+  else { CL.push(d); curIdx = CL.length - 1; }
+  localStorage.setItem('akd_clients', JSON.stringify(CL));
+  suppSave();
+  renderClientList();
+  $('client_selector').value = curIdx;
+  updateBadge();
+  const msg = $('save_msg'); if (msg) { msg.textContent = '✔ Kaydedildi'; msg.classList.remove('hidden'); setTimeout(() => msg.classList.add('hidden'), 2500); }
+}
+
+function newClient() {
+  curIdx = -1; clearForm(); suppItems = []; suppRender();
+  $('client_selector').value = '';
+  $('client_badge').classList.add('hidden');
+  $('save_msg').classList.add('hidden');
+}
+
+function deleteClient() {
+  if (curIdx < 0) return;
+  if (!confirm(`"${CL[curIdx].cnt_name}" silinsin mi?`)) return;
+  CL.splice(curIdx, 1);
+  localStorage.setItem('akd_clients', JSON.stringify(CL));
+  curIdx = -1; clearForm(); renderClientList();
+  $('client_badge').classList.add('hidden');
+}
+
+function updateBadge() {
+  const name = N('cnt_height') ? ($('cnt_name')||{}).value || '' : ($('cnt_name')||{}).value || '';
+  const dispName = ($('cnt_name')||{}).value || '';
+  if (!dispName) { $('client_badge').classList.add('hidden'); return; }
+  $('client_badge').classList.remove('hidden');
+  $('client_badge_name').textContent = dispName;
+  const kg = N('cnt_weight'), ht = N('cnt_height');
+  const bmi = ht > 0 ? kg / ((ht/100)**2) : 0;
+  $('client_badge_detail').textContent = bmi > 0 ? `VKİ ${f(bmi,1)} · ${($('cnt_sex')||{}).value||''}` : ($('cnt_age')||{}).value ? `${($('cnt_age')||{}).value} yaş` : '';
+}
+
+/* ══ ANTROPOMETRİ / VKİ ══ */
+function calcBMI() {
+  const kg = N('cnt_weight'), ht = N('cnt_height');
+  if (!kg || !ht) { $('bmi_result').classList.add('hidden'); return; }
+  const bmi = kg / ((ht/100)**2);
+  const wst = N('cnt_waist'), whr = ht > 0 ? wst / ht : 0;
+  const cl = bmi < 18.5 ? ['Zayıf','text-blue-600'] : bmi < 25 ? ['Normal','text-emerald-600'] :
+             bmi < 30 ? ['Fazla Kilolu','text-yellow-600'] : bmi < 35 ? ['Obez I','text-orange-600'] :
+             bmi < 40 ? ['Obez II','text-red-600'] : ['Obez III (Morbid)','text-red-800'];
+  $('bmi_result').classList.remove('hidden');
+  $('bmi_val').textContent = f(bmi,1);
+  $('bmi_class').textContent = cl[0]; $('bmi_class').className = 'font-bold ' + cl[1];
+  if (wst && ht) {
+    const sex = ($('cnt_sex')||{}).value||'K';
+    const risk = sex === 'E' ? (whr >= 0.55 ? 'Yüksek Risk' : whr >= 0.50 ? 'Orta Risk' : 'Normal') :
+                               (whr >= 0.53 ? 'Yüksek Risk' : whr >= 0.49 ? 'Orta Risk' : 'Normal');
+    $('whr_val').textContent = `${f(whr,2)} — ${risk}`;
+  } else { $('whr_val').textContent = '—'; }
+  const idealLow = 18.5*(ht/100)**2, idealHigh = 24.9*(ht/100)**2;
+  $('ideal_wt').textContent = `${f(idealLow,1)} – ${f(idealHigh,1)} kg`;
+}
+
+/* ══ ENERJİ HESABI ══ */
+function calcEnergy() {
+  const kg = N('cnt_weight'), ht = N('cnt_height'), age = N('cnt_age'), sex = ($('cnt_sex')||{}).value||'K';
+  const bf = N('en_bf'), pal = N('cnt_pal') || parseFloat(($('cnt_pal')||{}).value||'1.55');
+  if (!kg || !ht || !age) return;
+
+  const formula = ($('en_formula')||{}).value || 'mifflin';
+  let rmr;
+  if (formula === 'mifflin') {
+    rmr = 10*kg + 6.25*ht - 5*age + (sex === 'E' ? 5 : -161);
+  } else if (formula === 'harris') {
+    rmr = sex === 'E' ? 88.362 + 13.397*kg + 4.799*ht - 5.677*age :
+                        447.593 + 9.247*kg + 3.098*ht - 4.330*age;
+  } else { // cunningham
+    const ffm = bf > 0 ? kg*(1-bf/100) : kg*0.75;
+    rmr = 500 + 22*ffm;
+  }
+  const tee = rmr * pal;
+  const goalAdj = ($('en_goal')||{}).value === 'custom' ? (N('en_custom_kcal') - tee) : parseInt(($('en_goal')||{}).value||'0');
+  const target = tee + goalAdj;
+
+  $('en_rmr').textContent = f(rmr,0);
+  $('en_tee').textContent = f(tee,0);
+  $('en_target').textContent = f(target,0);
+  calcMacro(target, kg);
+  renderWeightPlan(tee, target, kg);
+  renderClinicalRecs();
+}
+
+function calcMacro(targetKcal, kg_) {
+  const target = targetKcal || parseFloat(($('en_target')||{}).textContent||'0');
+  const kg = kg_ || N('cnt_weight');
+  if (!target || !kg) return;
+  const choPct = N('en_cho_pct') || 45;
+  const proGkg = N('en_pro_gkg') || 1.2;
+  const cho = target * choPct / 100 / 4;
+  const pro = kg * proGkg;
+  const fat = target * 0.25 / 9;
+  const mr = $('macro_result'); if (mr) mr.classList.remove('hidden');
+  $('macro_cho').textContent = `${f(cho,0)} g · ${choPct}%`;
+  $('macro_pro').textContent = `${f(pro,0)} g · ${f(pro*4/target*100,0)}%`;
+  $('macro_fat').textContent = `${f(fat,0)} g · 25%`;
+}
+
+function renderWeightPlan(tee, target, kg) {
+  const el = $('weight_plan'); if (!el) return;
+  const deficit = tee - target;
+  if (deficit <= 0) { el.textContent = 'Kalori hedefi koruma veya artış yönünde.'; el.className = 'text-xs text-slate-500'; return; }
+  const kgPerWeek = deficit * 7 / 7700;
+  const goalKg = N('cnt_goal_wt');
+  const diff = kg - goalKg;
+  const weeks = goalKg > 0 && diff > 0 ? Math.ceil(diff / kgPerWeek) : null;
+  el.className = 'text-xs space-y-1';
+  el.innerHTML = `
+    <div class="flex justify-between p-2 bg-slate-50 rounded-lg"><span class="text-slate-500">Haftalık tahmini kayıp</span><span class="font-bold text-emerald-700">≈ ${f(kgPerWeek,2)} kg/hafta</span></div>
+    ${weeks ? `<div class="flex justify-between p-2 bg-slate-50 rounded-lg"><span class="text-slate-500">Hedefe ulaşma süresi</span><span class="font-bold text-indigo-700">≈ ${weeks} hafta (${f(weeks/4.3,1)} ay)</span></div>` : ''}
+    <p class="text-[11px] text-slate-400 italic">Haftada 0.5–1 kg kayıp sürdürülebilir hedef aralığındadır.</p>`;
+}
+
+/* ══ LAB YORUMLARI ══ */
+function renderLabComments() {
+  const el = $('lab_comments'); if (!el) return;
+  const comments = [];
+  const glu = N('lab_glu'), hba1c = N('lab_hba1c'), homa = N('lab_homa');
+  if (glu > 0) {
+    if (glu >= 126) comments.push({ type:'danger', txt:`Açlık glukozu ${glu} mg/dL — Diyabet eşiği aşılmış (≥126). Doktor onaylı diyet planı gerekli.` });
+    else if (glu >= 100) comments.push({ type:'warn', txt:`Açlık glukozu ${glu} mg/dL — Prediyabet / bozulmuş açlık glukozu (100–125). Düşük GI diyet önerilir.` });
+  }
+  if (hba1c > 0) {
+    if (hba1c >= 6.5) comments.push({ type:'danger', txt:`HbA1c ${hba1c}% — Diyabet kriterleri karşılanmış.` });
+    else if (hba1c >= 5.7) comments.push({ type:'warn', txt:`HbA1c ${hba1c}% — Prediyabet aralığında (5.7–6.4%).` });
+  }
+  if (homa >= 2.5) comments.push({ type:'warn', txt:`HOMA-IR ${homa} — İnsülin direnci var (≥2.5). Krom, Mg, düşük GI öncelikli.` });
+  const ldl = N('lab_ldl'), tg = N('lab_tg'), hdl = N('lab_hdl');
+  if (ldl >= 160) comments.push({ type:'danger', txt:`LDL ${ldl} mg/dL — Yüksek. Doymuş yağ ↓, çözünür lif ↑, Omega-3 protokolü.` });
+  else if (ldl >= 130) comments.push({ type:'warn', txt:`LDL ${ldl} mg/dL — Sınırda yüksek. Akdeniz diyeti, Omega-3 protokolü.` });
+  if (tg >= 200) comments.push({ type:'danger', txt:`Trigliserit ${tg} mg/dL — Yüksek. Basit KH ↓, alkol ↓, Omega-3 ↑.` });
+  else if (tg >= 150) comments.push({ type:'warn', txt:`Trigliserit ${tg} mg/dL — Sınırda yüksek.` });
+  const sex = ($('cnt_sex')||{}).value||'K';
+  if (hdl > 0 && hdl < (sex==='E'?40:50)) comments.push({ type:'warn', txt:`HDL ${hdl} mg/dL — Düşük. Egzersiz ↑, doymuş yağ → TDF ↑, Omega-3.` });
+  const vitd = N('lab_vitd');
+  if (vitd > 0 && vitd < 20) comments.push({ type:'danger', txt:`25-OH D ${vitd} ng/mL — Eksiklik (<20). Depo/günlük D vitamini tedavisi gerekli.` });
+  else if (vitd > 0 && vitd < 30) comments.push({ type:'warn', txt:`25-OH D ${vitd} ng/mL — Yetersizlik (20–30). D vitamini suplemantasyonu önerilir.` });
+  const b12 = N('lab_b12');
+  if (b12 > 0 && b12 < 200) comments.push({ type:'danger', txt:`B12 ${b12} pg/mL — Eksiklik. Suplemantasyon/enjeksiyon gerekli.` });
+  else if (b12 > 0 && b12 < 300) comments.push({ type:'warn', txt:`B12 ${b12} pg/mL — Alt sınır. Suplemantasyon önerilir.` });
+  const ferr = N('lab_ferritin');
+  if (ferr > 0 && ferr < 12) comments.push({ type:'danger', txt:`Ferritin ${ferr} ng/mL — Demir eksikliği anemisi eşiğinde. Demir tedavisi acil.` });
+  else if (ferr > 0 && ferr < 30) comments.push({ type:'warn', txt:`Ferritin ${ferr} ng/mL — Demir depoları düşük. Demir suplemantasyonu ve hayvansal demir kaynakları artırılmalı.` });
+  const hgb = N('lab_hgb');
+  if (hgb > 0 && hgb < (sex==='E'?13:12)) comments.push({ type:'danger', txt:`Hemoglobin ${hgb} g/dL — Anemi sınırı altında. Demir, B12, folat değerlendir.` });
+
+  if (comments.length === 0) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML = comments.map(c => `
+    <div class="flex gap-2 p-2.5 rounded-xl text-xs ${c.type==='danger'?'bg-red-50 border border-red-100 text-red-800':'bg-amber-50 border border-amber-100 text-amber-800'}">
+      <i class="fa-solid ${c.type==='danger'?'fa-circle-exclamation text-red-500':'fa-triangle-exclamation text-amber-500'} mt-0.5"></i>
+      <span>${c.txt}</span>
+    </div>`).join('');
+}
+
+/* ══ KLİNİK BESLENME ÖNERİLERİ ══ */
+function renderClinicalRecs() {
+  const el = $('en_clin_recs'); if (!el) return;
+  const recs = [];
+  if ($('dx_dm2') && $('dx_dm2').checked || $('dx_ir') && $('dx_ir').checked) {
+    recs.push('Düşük glisemik indeksli KH seçin. Karbonhidrat porsiyon kontrolü (<45g/öğün). Lif hedefi ≥25g/gün.');
+    recs.push('Myo-inositol ve krom pikolinat insülin duyarlılığını destekler.');
+  }
+  if ($('dx_dislip') && $('dx_dislip').checked) {
+    recs.push('Doymuş yağ <7% TE, trans yağ sıfır. Çözünür lif ↑ (yulaf, baklagil). Omega-3 ≥2g/gün.');
+  }
+  if ($('dx_pkos') && $('dx_pkos').checked) {
+    recs.push('PKOS: Düşük GI diyet + Myo-inositol (2g × 2/gün) + D vitamini + Omega-3 protokolü.');
+  }
+  if ($('dx_hipo') && $('dx_hipo').checked) {
+    recs.push('Hipotiroidi: Selenyum 100–200 mcg/gün. Soya, çiğ brassica, gluteni sınırla. İyot yeterli alımı sağla.');
+  }
+  if ($('dx_ye') && $('dx_ye').checked) {
+    recs.push('Yeme bozukluğu varlığında kısıtlayıcı dil kullanmaktan kaçının. Psikiyatri/psikoloji iş birliği öncelikli.');
+    recs.push('Çinko suplemantasyonu (anoreksiyadaki tat-koku bozukluğu için), B kompleks, D vitamini.');
+  }
+  if ($('dx_anemi') && $('dx_anemi').checked) {
+    recs.push('Demir emilimini artırmak için C vitamini ile birlikte alın, çay/kahveden 2 saat uzak tutun.');
+  }
+  if (recs.length === 0) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML = `<div class="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-1.5">
+    <p class="text-[11px] font-bold text-blue-800 uppercase tracking-wide flex items-center gap-1.5"><i class="fa-solid fa-lightbulb text-blue-500"></i> Klinik Öneriler (Tanıya Göre)</p>
+    ${recs.map(r => `<p class="text-xs text-blue-700">• ${r}</p>`).join('')}
+  </div>`;
+}
+
+/* ══ BIA DEĞERLENDİRME ══ */
+function calcBIA() {
+  const bf = N('tn_bf'), sex = ($('cnt_sex')||{}).value||'K', age = N('cnt_age');
+  const el = $('bia_eval'); if (!el) return;
+  if (!bf) { el.classList.add('hidden'); return; }
+
+  // Genel popülasyon referansları (WHO/Gallagher sınıflandırması)
+  let status, color;
+  if (sex === 'E') {
+    status = bf < 8 ? 'Temel yağ altı' : bf < 18 ? 'Fit/Normal' : bf < 25 ? 'Ortalama' : bf < 32 ? 'Hafif obez' : 'Obez';
+    color  = bf < 8 ? 'text-blue-600' : bf < 25 ? 'text-emerald-600' : bf < 32 ? 'text-yellow-600' : 'text-red-600';
+  } else {
+    status = bf < 14 ? 'Temel yağ altı' : bf < 24 ? 'Fit/Normal' : bf < 32 ? 'Ortalama' : bf < 38 ? 'Hafif obez' : 'Obez';
+    color  = bf < 14 ? 'text-blue-600' : bf < 32 ? 'text-emerald-600' : bf < 38 ? 'text-yellow-600' : 'text-red-600';
+  }
+  const vfa = N('tn_vfa');
+  const vfaStatus = vfa > 0 ? (vfa > 12 ? 'Yüksek (kardiyometabolik risk)' : vfa > 9 ? 'Orta' : 'Normal') : '—';
+
+  el.classList.remove('hidden');
+  el.innerHTML = `
+    <div class="flex justify-between items-center">
+      <span class="font-bold text-indigo-900">Yağ % Değerlendirmesi</span>
+      <span class="font-black ${color} text-lg">${f(bf,1)}%</span>
+    </div>
+    <div class="flex justify-between"><span class="text-slate-500">Sınıflandırma</span><span class="font-bold ${color}">${status}</span></div>
+    <div class="flex justify-between"><span class="text-slate-500">Viseral Yağ</span><span class="font-semibold text-slate-700">${vfa||'—'} ${vfa ? '— ' + vfaStatus : ''}</span></div>
+    <p class="text-[10px] text-slate-400 italic">Referans: WHO/Gallagher genel popülasyon sınıflandırması.</p>`;
+}
+
+function saveBIARecord() {
+  const rec = {
+    date: $('tn_date').value || new Date().toLocaleDateString('tr-TR'),
+    bf: N('tn_bf'), fm: N('tn_fm'), ffm: N('tn_ffm'), mm: N('tn_mm'),
+    tbw: N('tn_tbw'), vfa: N('tn_vfa'), bmr: N('tn_bmr'), bm: N('tn_bm'),
+    wt: N('cnt_weight')
+  };
+  const key = 'bia_' + (($('cnt_name')||{}).value || '_global');
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
+  hist.unshift(rec);
+  if (hist.length > 10) hist = hist.slice(0, 10);
+  localStorage.setItem(key, JSON.stringify(hist));
+  renderBIAHistory();
+}
+
+function renderBIAHistory() {
+  const key = 'bia_' + (($('cnt_name')||{}).value || '_global');
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
+  const el = $('bia_history'); if (!el) return;
+  if (!hist.length) { el.textContent = 'Henüz kayıt yok.'; el.className = 'text-xs text-slate-400'; return; }
+  el.className = 'space-y-2';
+  el.innerHTML = hist.map((r,i) => `
+    <div class="flex gap-2 items-center text-xs bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+      <span class="font-bold text-slate-500 w-20 shrink-0">${r.date}</span>
+      <span class="text-slate-600">${r.wt||'—'} kg</span>
+      <span class="text-slate-500">Yağ: <b class="text-slate-700">${r.bf||'—'}%</b></span>
+      <span class="text-slate-500">Kas: <b class="text-slate-700">${r.mm||'—'} kg</b></span>
+      <span class="text-slate-500">VYA: <b class="text-slate-700">${r.vfa||'—'}</b></span>
+      <button onclick="deleteBIARec(${i})" class="ml-auto text-red-300 hover:text-red-500 transition"><i class="fa-solid fa-xmark"></i></button>
+    </div>`).join('');
+}
+
+function deleteBIARec(idx) {
+  const key = 'bia_' + (($('cnt_name')||{}).value || '_global');
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
+  hist.splice(idx, 1);
+  localStorage.setItem(key, JSON.stringify(hist));
+  renderBIAHistory();
+}
+
+/* ══ MENÜ ══ */
+const MEAL_LABELS = ['Kahvaltı','Öğle Yemeği','Akşam Yemeği','Sabah Arası','Öğleden Sonra Arası','Gece Arası'];
+function renderMenuForm() {
+  const n = parseInt(($('mn_meals')||{}).value||'3');
+  const el = $('menu_form'); if (!el) return;
+  const labels = n === 3 ? MEAL_LABELS.slice(0,3) : n === 5 ? [...MEAL_LABELS.slice(0,3), MEAL_LABELS[3], MEAL_LABELS[4]] : MEAL_LABELS;
+  el.innerHTML = labels.map((lbl,i) => `
+    <div>
+      <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">${lbl}</label>
+      <textarea id="mn_meal_${i}" rows="2" class="input mt-1" placeholder="Besinler, porsiyonlar..."></textarea>
+    </div>`).join('');
+}
+
+const EXCHANGES = {
+  ekmek: `<b>1 Porsiyon = 15g KH, 68 kcal</b>\nEkmek 25g (½ dilim) · Pide 20g · Makarna pişmiş 1/3 su bardağı (60g) · Pirinç pişmiş 2 yemek kaşığı (45g) · Yulaf ezmesi 3 yemek kaşığı (25g) · Patates pişmiş 75g · Mısır 75g · Galeta 15g`,
+  et: `<b>1 Porsiyon = 7g protein, ~55–75 kcal</b>\nYağsız et 30g · Tavuk (derisiz) 30g · Balık 30g · Yumurta 1 adet · Lor 60g · Az yağlı peynir 30g · Baklagil pişmiş 80g`,
+  sut: `<b>1 Porsiyon = 8g protein, 12g KH, ~90–120 kcal</b>\nSüt 200 mL · Yoğurt 200g · Ayran 200 mL · Kefir 200 mL`,
+  sebze: `<b>1 Porsiyon = 5g KH, 25 kcal (non-nişastalı)</b>\nIspanak / Marul / Roka 100g · Kabak 100g · Domates 100g · Salatalık 100g · Brokoli 80g · Yeşil fasulye 80g`,
+  meyve: `<b>1 Porsiyon = 15g KH, 60 kcal</b>\nElma 100g (küçük 1 adet) · Muz ½ adet (60g) · Portakal 150g · Üzüm 15 tane · Karpuz 300g · Çilek 150g`,
+  yag: `<b>1 Porsiyon = 5g yağ, 45 kcal</b>\nZeytinyağı 1 çay kaşığı (5g) · Tereyağı 1 çay kaşığı (5g) · Zeytin 10 adet · Avokado 30g · Ceviz 2 yarım (10g) · Badem 7 adet (10g)`
+};
+
+let activeExchange = null;
+function toggleExchange(key) {
+  const el = $('exchange_panel'); if (!el) return;
+  if (activeExchange === key) { el.classList.add('hidden'); activeExchange = null; return; }
+  activeExchange = key;
+  el.innerHTML = (EXCHANGES[key]||'').split('\n').map(l => `<p class="${l.startsWith('<b>')?'font-bold text-slate-700':'text-slate-600'}">${l.replace(/<b>(.*?)<\/b>/,'<strong>$1</strong>')}</p>`).join('');
+  el.classList.remove('hidden');
+}
+
+/* ══ SUPPLEMENT ══ */
+let suppItems = [];
+const SUPP_CAT_COLORS = {
+  vitamin:  { bg:'#FEF3C7', border:'#F59E0B', text:'#92400E', rbg:'#FDE68A', rborder:'#D97706' },
+  mineral:  { bg:'#D1FAE5', border:'#10B981', text:'#064E3B', rbg:'#A7F3D0', rborder:'#059669' },
+  diger:    { bg:'#DBEAFE', border:'#3B82F6', text:'#1E3A8A', rbg:'#BFDBFE', rborder:'#2563EB' }
+};
+
+function suppRender() {
+  const el = $('supp_cards'); if (!el) return;
+  if (suppItems.length === 0) {
+    el.innerHTML = '<p class="text-sm text-slate-400 text-center py-6 italic">Henüz supplement eklenmedi.</p>';
+    if ($('supp_count')) $('supp_count').textContent = ''; return;
+  }
+  if ($('supp_count')) $('supp_count').textContent = `(${suppItems.length} madde)`;
+  el.innerHTML = suppItems.map((item, i) => {
+    const c = SUPP_CAT_COLORS[item.cat] || SUPP_CAT_COLORS.diger;
+    return `<div class="flex items-stretch gap-2 group">
+      <div class="pill-left" style="background:${c.bg};border-color:${c.border};color:${c.text}">${item.name}</div>
+      <div class="pill-right" style="background:${c.rbg};border-color:${c.rborder};color:${c.text}">${item.timing}</div>
+      <button onclick="suppRemove(${i})" class="opacity-0 group-hover:opacity-100 transition px-2 text-red-400 hover:text-red-600 text-sm" title="Kaldır"><i class="fa-solid fa-xmark"></i></button>
+    </div>`;
+  }).join('');
+  renderSuppClinRecs();
+}
+
+function suppQuickAdd(name, cat, timing) {
+  suppItems.push({name, cat, timing}); suppSave(); suppRender();
+}
+function suppAddManual() {
+  const name = ($('supp_name').value||'').trim(), timing = ($('supp_timing').value||'').trim(), cat = $('supp_cat').value||'diger';
+  if (!name) { alert('Supplement adı giriniz.'); return; }
+  if (!timing) { alert('Zamanlama/doz giriniz.'); return; }
+  suppItems.push({name, timing, cat});
+  $('supp_name').value=''; $('supp_timing').value='';
+  suppSave(); suppRender();
+}
+function suppRemove(idx) { suppItems.splice(idx,1); suppSave(); suppRender(); }
+function suppClearAll() { if (!suppItems.length || confirm('Tüm protokol temizlensin mi?')) { suppItems=[]; suppSave(); suppRender(); } }
+function suppSave() {
+  const key='supp_'+(($('cnt_name')?$('cnt_name').value:'')||'_global');
+  try { localStorage.setItem(key, JSON.stringify(suppItems)); } catch(e){}
+}
+function suppLoad() {
+  const key='supp_'+(($('cnt_name')?$('cnt_name').value:'')||'_global');
+  try { suppItems = JSON.parse(localStorage.getItem(key)||'[]'); } catch(e) { suppItems=[]; }
+  suppRender();
+}
+
+function renderSuppClinRecs() {
+  const el = $('supp_clin_recs'), list = $('supp_clin_list'); if (!el||!list) return;
+  const recs = [];
+  if ($('dx_dm2')&&$('dx_dm2').checked || $('dx_ir')&&$('dx_ir').checked)
+    recs.push('Krom Pikolinat, Magnezyum, Myo-İnositol, D Vitamini, Omega-3');
+  if ($('dx_pkos')&&$('dx_pkos').checked)
+    recs.push('Myo-İnositol (2g×2), D Vitamini, Omega-3, Folik Asit, N-Asetilsistein (NAC)');
+  if ($('dx_dislip')&&$('dx_dislip').checked)
+    recs.push('Omega-3 (2g/gün), Koenzim Q10, Probiyotik, Çözünür lif (psyllium)');
+  if ($('dx_hipo')&&$('dx_hipo').checked)
+    recs.push('Selenyum (100–200 mcg), İyot (tiroid fonksiyonu iyi izlenerek), Çinko');
+  if ($('dx_anemi')&&$('dx_anemi').checked)
+    recs.push('Demir (C Vitamini ile birlikte, Haftanın Tek Günleri), Folat, B12');
+  if ($('dx_osteo')&&$('dx_osteo').checked)
+    recs.push('Kalsiyum (500mg×2, yemeklerle), D Vitamini, Magnezyum, K2 Vitamini');
+  if ($('dx_ye')&&$('dx_ye').checked)
+    recs.push('Çinko, B Kompleks, D Vitamini, Omega-3 (ruh hali desteği)');
+  if (!recs.length) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  list.innerHTML = recs.map(r=>`<p class="text-xs text-purple-700">• ${r}</p>`).join('');
+}
+
+async function suppGenPDF() {
+  const clientName = ($('cnt_name')?$('cnt_name').value:'')||'Danışan';
+  if (!suppItems.length) { alert('Protokolde supplement yok.'); return; }
+  let PDFLib; try { PDFLib = window.PDFLib; } catch(e){}
+  if (!PDFLib||!PDFLib.PDFDocument) { alert('PDF kütüphanesi yüklenemedi.'); return; }
+  const { PDFDocument, rgb, StandardFonts } = PDFLib;
+  const doc = await PDFDocument.create();
+  doc.setTitle(`${clientName} – Supplement Protokol`);
+  doc.setAuthor("Uzm. Dyt. Yunus Aksu");
+  doc.setProducer("AKD – Asistan Klinik Diyetisyen");
+  const W=595.28, H=841.89;
+  const page = doc.addPage([W,H]);
+  const hB = await doc.embedFont(StandardFonts.HelveticaBold);
+  const hR = await doc.embedFont(StandardFonts.Helvetica);
+
+  page.drawRectangle({x:0,y:0,width:W,height:H,color:rgb(0.969,0.949,0.918)});
+  const nW = hR.widthOfTextAtSize(clientName,30);
+  page.drawText(clientName,{x:W/2-nW/2,y:H-80,size:30,font:hR,color:rgb(0.15,0.15,0.15)});
+  const sub='Supplement Protokol';
+  const sW = hB.widthOfTextAtSize(sub,22);
+  page.drawText(sub,{x:W/2-sW/2,y:H-130,size:22,font:hB,color:rgb(0.1,0.1,0.1)});
+  page.drawLine({start:{x:80,y:H-155},end:{x:W-80,y:H-155},thickness:1.5,color:rgb(0.7,0.65,0.6)});
+
+  const palette = [
+    [0.251,0.706,0.400],[0.984,0.631,0.220],[0.576,0.867,0.400],
+    [1.000,0.800,0.300],[0.900,0.400,0.200]
+  ];
+  let yPos=H-185;
+  const rowH=42, gap=10, lW=165, rW=310, sX=60, rad=8;
+
+  function rrect(pg,x,y,w,h,r,c) {
+    pg.drawRectangle({x:x+r,y,width:w-2*r,height:h,color:c});
+    pg.drawRectangle({x,y:y+r,width:w,height:h-2*r,color:c});
+    [[x+r,y+r],[x+w-r,y+r],[x+r,y+h-r],[x+w-r,y+h-r]].forEach(([cx,cy])=>pg.drawCircle({x:cx,y:cy,size:r,color:c}));
+  }
+
+  for (let i=0; i<suppItems.length; i++) {
+    if (yPos<120) break;
+    const [lR,lG,lB]=palette[i%palette.length];
+    const rclr=rgb(Math.max(0,lR-.13),Math.max(0,lG-.13),Math.max(0,lB-.05));
+    rrect(page,sX,yPos,lW,rowH,rad,rgb(lR,lG,lB));
+    const nTxt=suppItems[i].name, nFs=11, nw=hB.widthOfTextAtSize(nTxt,nFs);
+    page.drawText(nTxt,{x:Math.min(sX+lW/2-nw/2,sX+lW-nw-6),y:yPos+rowH/2-nFs*0.35,size:nFs,font:hB,color:rgb(1,1,1)});
+    rrect(page,sX+lW+10,yPos,rW,rowH,rad,rclr);
+    const tTxt=suppItems[i].timing.length>50?suppItems[i].timing.substring(0,48)+'…':suppItems[i].timing;
+    page.drawText(tTxt,{x:sX+lW+24,y:yPos+rowH/2-10*0.35,size:10,font:hB,color:rgb(1,1,1)});
+    yPos-=(rowH+gap);
+  }
+
+  const fY=55;
+  page.drawLine({start:{x:W/2-60,y:fY+20},end:{x:W/2+60,y:fY+20},thickness:0.8,color:rgb(0.6,0.55,0.5)});
+  const sig='Uzm. Dyt. Yunus Aksu', sW2=hB.widthOfTextAtSize(sig,9);
+  page.drawText(sig,{x:W/2-sW2/2,y:fY+6,size:9,font:hB,color:rgb(0.35,0.32,0.28)});
+  const dTxt=new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
+  const dW=hR.widthOfTextAtSize(dTxt,8);
+  page.drawText(dTxt,{x:W/2-dW/2,y:fY-6,size:8,font:hR,color:rgb(0.55,0.52,0.48)});
+
+  const bytes=await doc.save();
+  const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+  const a=document.createElement('a');
+  a.href=url; a.download=(clientName.replace(/\s+/g,'_'))+'_Supplement_Protokol_'+new Date().toISOString().slice(0,10)+'.pdf';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+/* ══ TAB GEÇME ══ */
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.add('hidden'));
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active-tab'));
+  const target=$('tab-'+tabId), btn=$('nav-'+tabId);
+  if (target) target.classList.remove('hidden');
+  if (btn) btn.classList.add('active-tab');
+  window.scrollTo(0,0);
+  if (tabId==='tn') renderBIAHistory();
+  if (tabId==='sp') { renderSuppClinRecs(); suppLoad(); }
+}
+
+/* ══ BAŞLANGIÇ ══ */
+window.onload = () => {
+  renderClientList();
+  renderMenuForm();
+  $('client_selector').addEventListener('change', loadClient);
+  $('cnt_weight').addEventListener('change', ()=>{ calcBMI(); calcEnergy(); updateBadge(); });
+  $('cnt_height').addEventListener('change', ()=>{ calcBMI(); calcEnergy(); updateBadge(); });
+  $('cnt_age').addEventListener('change', calcEnergy);
+  $('cnt_sex').addEventListener('change', ()=>{ calcBMI(); calcEnergy(); });
+  $('cnt_pal').addEventListener('change', calcEnergy);
+
+  // Lab değerleri değişince otomatik yorum
+  ['lab_glu','lab_hba1c','lab_ins','lab_homa','lab_tc','lab_ldl','lab_hdl','lab_tg',
+   'lab_vitd','lab_b12','lab_ferritin','lab_hgb'].forEach(id => {
+    const el = $(id); if (el) el.addEventListener('change', renderLabComments);
+  });
+
+  // Tanı checkbox'ları değişince öneri güncelle
+  ['dx_obez','dx_dm2','dx_ir','dx_ht','dx_dislip','dx_pkos','dx_hipo','dx_hiper',
+   'dx_anemi','dx_osteo','dx_ibs','dx_ye','dx_dm1','dx_celiac'].forEach(id => {
+    const el=$(id); if (el) el.addEventListener('change', ()=>{ renderClinicalRecs(); renderSuppClinRecs(); });
+  });
+
+  $('tn_bf').addEventListener('change', calcBIA);
+  $('cnt_dob').addEventListener('change', () => {
+    const dob = new Date($('cnt_dob').value);
+    if (!isNaN(dob)) {
+      const age = Math.floor((new Date() - dob) / (365.25*24*3600*1000));
+      $('cnt_age').value = age;
+      calcEnergy();
+    }
+  });
+
+  suppLoad();
+  $('cnt_date').valueAsDate = new Date();
+
+  // Tanita drop zone click
+  const dz = $('tanita_drop_zone');
+  if (dz) {
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('bg-teal-100'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('bg-teal-100'));
+    dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('bg-teal-100'); const f = e.dataTransfer.files[0]; if (f && f.type==='application/pdf') parseTanitaPDF(f); });
+    dz.addEventListener('click', () => $('tanita_pdf_input').click());
+  }
+};
+
+/* ══ GOOGLE FORM ENTEGRASYONU ══ */
+async function fetchGoogleForm() {
+  const url = ($('gform_script_url')||{}).value || '';
+  if (!url) { showGFormStatus('error','Apps Script URL girilmedi.'); return; }
+  showGFormStatus('info','Yanıt çekiliyor...');
+  try {
+    // CORS bypass: proxy üzerinden veya JSONP
+    const proxyUrl = url + (url.includes('?') ? '&' : '?') + 'callback=_gfcb&t=' + Date.now();
+    await new Promise((resolve, reject) => {
+      window._gfcb = (data) => { delete window._gfcb; fillFromGForm(data); resolve(); };
+      const s = document.createElement('script');
+      s.src = proxyUrl;
+      s.onerror = () => { delete window._gfcb; reject(new Error('Script yüklenemedi')); };
+      document.head.appendChild(s);
+      setTimeout(() => { if (window._gfcb) { delete window._gfcb; reject(new Error('Zaman aşımı')); } }, 8000);
+    });
+  } catch(e) {
+    // JSONP başarısız → fetch dene
+    try {
+      const resp = await fetch(url, { mode: 'no-cors' });
+      showGFormStatus('warn', 'Apps Script "no-cors" ile erişildi; JSON alınamadı. Scripti "Anyone" olarak yeniden deploy edin.');
+    } catch(e2) {
+      showGFormStatus('error', 'Bağlantı hatası: ' + e2.message + '\n👉 Apps Script → Deploy → "Anyone" erişimine açık olmalı.');
+    }
+  }
+}
+
+function fillFromGForm(data) {
+  // Google Sheet başlıkları → Form alan eşleştirmesi
+  // Başlıklar: Email, Ad ve Soyad, Cinsiyet, Telefon Numarası, Meslek ve Öğrenim Durumu, Doğum Tarihi
+  const map = {
+    'Ad ve Soyad':               'cnt_name',
+    'Adı Soyadı':                'cnt_name',
+    'Ad Soyad':                  'cnt_name',
+    'Cinsiyet':                  null,          // özel işlem
+    'Telefon Numarası':          'cnt_phone',
+    'Telefon':                   'cnt_phone',
+    'Meslek ve Öğrenim Durumu':  'cnt_job',
+    'Meslek':                    'cnt_job',
+    'Doğum Tarihi':              'cnt_dob',
+    'Doğum tarihi':              'cnt_dob',
+    'Email':                     null,          // kullanmıyoruz
+  };
+  let filled = 0;
+  Object.keys(data).forEach(key => {
+    const val = String(data[key] || '').trim();
+    if (!val) return;
+    if (map[key] === null) {
+      // Cinsiyet özel işlem
+      if (key.toLowerCase().includes('cinsiyet')) {
+        const sex = val.toLowerCase().includes('erkek') ? 'E' : 'K';
+        const el = $('cnt_sex'); if (el) el.value = sex;
+        filled++;
+      }
+    } else if (map[key]) {
+      const el = $(map[key]);
+      if (el) {
+        // Tarih formatı: DD/MM/YYYY veya MM/DD/YYYY → input[date] YYYY-MM-DD
+        if (map[key] === 'cnt_dob' && val.includes('/')) {
+          const parts = val.split('/');
+          if (parts.length === 3) {
+            // Google Forms MM/DD/YYYY döndürür
+            const [mm, dd, yyyy] = parts;
+            el.value = `${yyyy.padStart(4,'0')}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+          }
+        } else {
+          el.value = val;
+        }
+        filled++;
+      }
+    }
+  });
+  // Doğum tarihinden yaş hesapla
+  const dobEl = $('cnt_dob');
+  if (dobEl && dobEl.value) {
+    const dob = new Date(dobEl.value);
+    if (!isNaN(dob)) $('cnt_age').value = Math.floor((new Date()-dob)/(365.25*24*3600*1000));
+  }
+  showGFormStatus('success', `✔ ${filled} alan dolduruldu: ${Object.values(data).filter(v=>v).length > 0 ? Object.keys(data).filter(k=>data[k]).join(', ') : ''}`);
+  calcBMI(); calcEnergy(); updateBadge();
+}
+
+function showGFormStatus(type, msg) {
+  const el = $('gform_status'); if (!el) return;
+  el.classList.remove('hidden');
+  const styles = { success:'bg-emerald-50 text-emerald-700 border border-emerald-100', error:'bg-red-50 text-red-700 border border-red-100', warn:'bg-amber-50 text-amber-700 border border-amber-100', info:'bg-blue-50 text-blue-600 border border-blue-100' };
+  el.className = 'text-xs rounded-xl px-3 py-2 font-semibold ' + (styles[type]||styles.info);
+  el.textContent = msg;
+}
+
+/* ══ TANİTA PDF PARSER ══ */
+async function parseTanitaPDF(file) {
+  if (!file) return;
+  const statusEl = $('tanita_parse_status');
+  if (statusEl) { statusEl.classList.remove('hidden'); statusEl.className = 'text-xs rounded-xl px-3 py-2 font-semibold bg-blue-50 text-blue-600 border border-blue-100'; statusEl.textContent = 'PDF okunuyor...'; }
+
+  if (typeof pdfjsLib === 'undefined') {
+    // PDF.js yüklenmemiş olabilir, CDN'den çek
+    if (statusEl) { statusEl.className = 'text-xs rounded-xl px-3 py-2 font-semibold bg-red-50 text-red-700 border border-red-100'; statusEl.textContent = 'PDF.js kütüphanesi yüklenemedi. İnternet bağlantısını kontrol edin.'; }
+    return;
+  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      fullText += content.items.map(s => s.str).join(' ') + '\n';
+    }
+    const data = extractTanitaData(fullText);
+    fillFromTanita(data, statusEl);
+  } catch(e) {
+    if (statusEl) { statusEl.className = 'text-xs rounded-xl px-3 py-2 font-semibold bg-red-50 text-red-700 border border-red-100'; statusEl.textContent = 'PDF okunamadı: ' + e.message; }
+  }
+}
+
+function extractTanitaData(text) {
+  const d = {};
+  const t = text;
+
+  // ── Tarih: Fark Analizi tablosundan en son satır ──
+  const dateMatches = [...t.matchAll(/(\d{2}\/\d{2}\/\d{4})\s+\d{2}:\d{2}:\d{2}/g)];
+  if (dateMatches.length > 0) {
+    const last = dateMatches[dateMatches.length - 1][1]; // DD/MM/YYYY
+    const [dd, mm, yyyy] = last.split('/');
+    d.date = `${yyyy}-${mm}-${dd}`;
+  }
+
+  // ── Kişisel Bilgiler: "Ad Soyad Cinsiyet VücutTipi Yaş Kilo Boy BMI" satırı ──
+  // Pattern: isim (Bayan|Erkek) (Standart|Atletik|Standard) yaş kg boy bmi
+  const personalRe = /([a-zA-ZğüşıöçĞÜŞİÖÇ\s]+?)\s+(Bayan|Erkek)\s+(Standart|Atletik|Standard|Normal)\s+(\d+)\s+([\d.]+)\s+(\d+)\s+([\d.]+)/i;
+  const pm = t.match(personalRe);
+  if (pm) {
+    d.name = pm[1].trim().replace(/\s+/g,' ');
+    d.sex  = pm[2] === 'Erkek' ? 'E' : 'K';
+    d.age  = parseInt(pm[4]);
+    d.weight = parseFloat(pm[5]);
+    d.height = parseInt(pm[6]);
+    d.bmi  = parseFloat(pm[7]);
+  }
+
+  // ── BIA Değerleri ──
+  let m;
+
+  // Yağ kg / % — format: "Yağ 18.00kg / 27.4% ..." veya "Yağ 19.19kg / 29.3%"
+  m = t.match(/Yağ\s+([\d.,]+)\s*kg\s*\/\s*([\d.]+)\s*%/);
+  if (m) { d.fm = parseFloat(m[1].replace(',','.')); d.bf = parseFloat(m[2]); }
+  if (!d.bf) { m = t.match(/Yağ\s+([\d.]+)\s*%/); if (m) d.bf = parseFloat(m[1]); }
+
+  // Yağsız Kütle — format "Yağsız Kütle Kg 47.69" (Atletik) veya "Yağsız Kütle 46.31kg" (Standart)
+  m = t.match(/Yağsız\s+Kütle\s+Kg\s+([\d.,]+)/i);
+  if (m) d.ffm = parseFloat(m[1].replace(',','.'));
+  if (!d.ffm) { m = t.match(/Yağsız\s+Kütle\s+([\d.,]+)\s*kg/i); if(m) d.ffm = parseFloat(m[1].replace(',','.')); }
+
+  // Kas — format "Kas Kg 45.25" (Atletik) veya "Kas 43.95kg" (Standart)
+  // Önce "Kas Kg XX" dene (segmental "Kas (kg) 7.1 ..." ile çakışmaması için)
+  m = t.match(/Kas\s+Kg\s+([\d.,]+)/i);
+  if (m) d.mm = parseFloat(m[1].replace(',','.'));
+  if (!d.mm) { m = t.match(/^Kas\s+([\d.,]+)\s*kg/im); if(m) d.mm = parseFloat(m[1].replace(',','.')); }
+  if (!d.mm) { m = t.match(/Kas\s+([\d.,]+)\s*kg\s*\//); if(m) d.mm = parseFloat(m[1].replace(',','.')); }
+
+  // Sıvı — format "Sıvı 33.73kg / 51.5%" veya Fark Analizi tablosundan
+  m = t.match(/Sıvı\s+([\d.,]+)\s*kg\s*\/\s*([\d.]+)\s*%/);
+  if (m) { d.tbw_kg = parseFloat(m[1].replace(',','.')); d.tbw_pct = parseFloat(m[2]); }
+  if (!d.tbw_pct) { m = t.match(/Sıvı\s+([\d.,]+)\s*kg\s*\/\s*([\d.]+)/); if(m) d.tbw_pct = parseFloat(m[2]); }
+  // Fark Analizi son satırından: "DD/MM/YYYY HH:MM:SS  Ağırlık  Sıvı  Yağ"
+  if (!d.tbw_kg) {
+    const farkRows = [...t.matchAll(/(\d{2}\/\d{2}\/\d{4})\s+\d{2}:\d{2}:\d{2}\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/g)];
+    if (farkRows.length > 0) {
+      const last = farkRows[farkRows.length - 1];
+      d.tbw_kg = parseFloat(last[3]);
+      const wt = parseFloat(last[2]);
+      if (!d.tbw_pct && wt > 0) d.tbw_pct = parseFloat((d.tbw_kg / wt * 100).toFixed(1));
+    }
+  }
+
+  // Kemik Mineral — "Kemik Mineral 2.4 kg" veya "Mineral 2.33 kg"
+  m = t.match(/Kemik\s+Mineral\s+([\d.]+)\s*kg/);
+  if (m) d.bm = parseFloat(m[1]);
+  if (!d.bm) { m = t.match(/Mineral\s+([\d.]+)\s*kg\s*\//); if(m) d.bm = parseFloat(m[1]); }
+
+  // Bazal Metabolizma
+  m = t.match(/Bazal\s+Metabolizma\s+Hız[ıi]\s*([\d,]+)\s*kcal/);
+  if (m) d.bmr = parseInt(m[1].replace(/,/g,''));
+
+  // İç Yağlanma (Viseral)
+  m = t.match(/İç\s+Yağlanma\s+([\d.]+)/);
+  if (m) d.vfa = parseFloat(m[1]);
+
+  // Obezite Derecesi
+  m = t.match(/Obezite\s+Derecesi\s*([-]?[\d.]+)\s*%/);
+  if (m) d.obesity_degree = parseFloat(m[1]);
+
+  // Metabolik Yaş
+  m = t.match(/Metabolik\s+Yaş\s+(\d+)/);
+  if (m) d.met_age = parseInt(m[1]);
+
+  // İdeal Kilo
+  m = t.match(/İdeal\s+Kilo\s+([\d.]+)\s*kg/);
+  if (m) d.ideal_wt = parseFloat(m[1]);
+
+  // Segmental Gövde yağ % — satırdaki son değer:
+  // "Yağ Oranı (%) 35.8 35.6 28.1 28.7 21.9" → 21.9 = Gövde
+  m = t.match(/Yağ\s+Oran[ıi]\s*\(%\)\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/);
+  if (m) d.trunk_bf = parseFloat(m[5]);
+  // Alternatif eski format (sütun başlıklarından)
+  if (!d.trunk_bf) { m = t.match(/Gövde\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/); if(m) d.trunk_bf = parseFloat(m[1]); }
+
+  return d;
+}
+
+function fillFromTanita(d, statusEl) {
+  let filled = 0;
+
+  // Kişisel bilgiler → Tab 1
+  if (d.name) { const el=$('cnt_name'); if(el){el.value=d.name.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '); filled++;} }
+  if (d.sex)  { const el=$('cnt_sex'); if(el){el.value=d.sex; filled++;} }
+  if (d.age)  { const el=$('cnt_age'); if(el){el.value=d.age; filled++;} }
+  if (d.weight){ const el=$('cnt_weight'); if(el){el.value=d.weight; filled++;} }
+  if (d.height){ const el=$('cnt_height'); if(el){el.value=d.height; filled++;} }
+
+  // BIA → Tab 4
+  if (d.date) { const el=$('tn_date'); if(el){el.value=d.date; filled++;} }
+  if (d.bf)   { const el=$('tn_bf'); if(el){el.value=d.bf; filled++;} }
+  if (d.fm)   { const el=$('tn_fm'); if(el){el.value=d.fm; filled++;} }
+  if (d.ffm)  { const el=$('tn_ffm'); if(el){el.value=d.ffm; filled++;} }
+  if (d.mm)   { const el=$('tn_mm'); if(el){el.value=d.mm; filled++;} }
+  if (d.tbw_pct){ const el=$('tn_tbw'); if(el){el.value=d.tbw_pct; filled++;} }
+  if (d.vfa)  { const el=$('tn_vfa'); if(el){el.value=d.vfa; filled++;} }
+  if (d.bmr)  { const el=$('tn_bmr'); if(el){el.value=d.bmr; filled++;} }
+  if (d.bm)   { const el=$('tn_bm'); if(el){el.value=d.bm; filled++;} }
+  // Enerji sekmesine BIA yağ % yansıt
+  if (d.bf)   { const el=$('en_bf'); if(el) el.value=d.bf; }
+
+  calcBMI(); calcEnergy(); calcBIA(); updateBadge();
+
+  if (statusEl) {
+    statusEl.className = 'text-xs rounded-xl px-3 py-2 font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100';
+    statusEl.textContent = `✔ ${filled} alan dolduruldu${d.name?' — '+d.name:''}${d.date?' ('+d.date+')':''}`;
+  }
+  renderTanitaRecs(d);
+}
+
+function renderTanitaRecs(d) {
+  const el = $('tanita_recs'); if (!el) return;
+  if (!d.bf && !d.vfa && !d.mm) { el.classList.add('hidden'); return; }
+
+  const sex = d.sex || ($('cnt_sex')||{}).value || 'K';
+  const age = d.age || N('cnt_age');
+  const recs = [];
+  const tags = [];
+
+  // ── Vücut yağı değerlendirmesi ──
+  if (d.bf) {
+    const bf = d.bf;
+    let bfStatus, bfColor, bfRec;
+    if (sex === 'E') {
+      if (bf < 8)       { bfStatus='Çok Düşük Yağ'; bfColor='text-blue-700'; bfRec='Yağ oranı yetersiz — enerji artışı ve kaliteli yağ kaynakları (zeytinyağı, avokado, ceviz) ekleyin.'; }
+      else if (bf < 18) { bfStatus='Fit / Normal'; bfColor='text-emerald-700'; bfRec='Yağ oranı optimal aralıkta. Mevcut beslenme düzenini koruyun.'; }
+      else if (bf < 25) { bfStatus='Ortalama'; bfColor='text-yellow-700'; bfRec='Yağ oranı ortalama üst sınıra yakın. Kalori kontrolü ve egzersiz önerilir.'; }
+      else if (bf < 32) { bfStatus='Yüksek Yağ'; bfColor='text-orange-700'; bfRec='Hafif obezite aralığında. Kalori açığı (–300–500 kcal/gün), düşük işlenmiş gıda ve düzenli kardiyovasküler egzersiz önerilir.'; }
+      else              { bfStatus='Obezite'; bfColor='text-red-700'; bfRec='Obezite aralığında. Medikal nutrisyon tedavisi, klinik takip ve multidisipliner yaklaşım gerekli.'; }
+    } else {
+      if (bf < 14)      { bfStatus='Çok Düşük Yağ'; bfColor='text-blue-700'; bfRec='Yağ oranı yetersiz — hormonal ve kemik sağlığı için enerji artışı gerekebilir.'; }
+      else if (bf < 24) { bfStatus='Fit / Normal'; bfColor='text-emerald-700'; bfRec='Yağ oranı optimal aralıkta. Mevcut düzeni koruyun.'; }
+      else if (bf < 32) { bfStatus='Ortalama'; bfColor='text-yellow-700'; bfRec='Yağ oranı ortalama üst banda yakın. Lif alımını artırın, işlenmiş KH\'ı azaltın.'; }
+      else if (bf < 38) { bfStatus='Yüksek Yağ'; bfColor='text-orange-700'; bfRec='Hafif obezite aralığında. –300–500 kcal/gün açık, Akdeniz diyeti, haftada ≥150 dk egzersiz.'; }
+      else              { bfStatus='Obezite'; bfColor='text-red-700'; bfRec='Obezite aralığında. Medikal nutrisyon tedavisi gerekli.'; }
+    }
+    recs.push({ title:`Vücut Yağı: %${bf} — ${bfStatus}`, text:bfRec, color:bfColor });
+    tags.push(bfStatus);
+  }
+
+  // ── Viseral yağ ──
+  if (d.vfa) {
+    if (d.vfa > 13)
+      recs.push({ title:`Viseral Yağ: ${d.vfa} — Yüksek Risk`, text:'Kardiyometabolik risk artmış. Şeker ve doymuş yağ kısıtlaması öncelikli; Omega-3 (2g/gün), çözünür lif (yulaf, baklagil) ve düzenli aerobik egzersiz.', color:'text-red-700' });
+    else if (d.vfa > 9)
+      recs.push({ title:`Viseral Yağ: ${d.vfa} — Orta`, text:'Orta düzey viseral yağ. Akdeniz diyeti, zeytinyağı, baklagil ve Omega-3 ile azaltılabilir.', color:'text-orange-700' });
+    else
+      recs.push({ title:`Viseral Yağ: ${d.vfa} — Normal`, text:'Viseral yağ normal sınırda.', color:'text-emerald-700' });
+  }
+
+  // ── Kas kütlesi ──
+  if (d.mm && d.weight) {
+    const mmPct = (d.mm / d.weight * 100);
+    if ((sex==='E' && mmPct < 70) || (sex==='K' && mmPct < 65)) {
+      recs.push({ title:`Kas Kütlesi: ${d.mm} kg (%${f(mmPct,1)}) — Düşük`, text:`Yeterli protein alımı (≥${f((d.weight||50)*1.2,0)}–${f((d.weight||50)*1.5,0)} g/gün), dirençli egzersiz ve uyku kalitesi kas sentezini destekler.`, color:'text-orange-700' });
+    } else {
+      recs.push({ title:`Kas Kütlesi: ${d.mm} kg — Yeterli`, text:'Kas kütlesi referans aralığında. Protein alımını ve dirençli egzersizi sürdürün.', color:'text-emerald-700' });
+    }
+  }
+
+  // ── Metabolik yaş ──
+  if (d.met_age && age) {
+    const diff = d.met_age - age;
+    if (diff > 5) recs.push({ title:`Metabolik Yaş: ${d.met_age} (gerçek: ${age}) — +${diff} yıl`, text:'Metabolik yaş gerçek yaşın üzerinde → kas kütlesi artırılarak (dirençli egzersiz + yeterli protein) BMR yükseltilebilir.', color:'text-orange-700' });
+    else if (diff < -5) recs.push({ title:`Metabolik Yaş: ${d.met_age} (gerçek: ${age}) — Mükemmel`, text:'Metabolik yaş gerçek yaşın altında. Kas-yağ kompozisyonu çok iyi durumda.', color:'text-emerald-700' });
+  }
+
+  // ── Obezite derecesi ──
+  if (d.obesity_degree !== undefined && d.obesity_degree > 5)
+    recs.push({ title:`Obezite Derecesi: %${d.obesity_degree}`, text:'İdeal kiloya göre vücut yağ fazlası. Hedef kiloya ulaşmak için program planlandı.', color:'text-orange-700' });
+
+  // ── Beslenme programı önerileri ──
+  const bmr = d.bmr || (d.ffm ? 500+22*d.ffm : 0);
+  if (bmr) {
+    const palVal = parseFloat(($('cnt_pal')||{}).value||'1.55');
+    const tee = bmr * palVal;
+    const target = tee - 400; // ortalama hafif açık
+    recs.push({ title:`BMR → Enerji Önerisi`, text:`BMR ${bmr} kcal/gün. PAL (${palVal}) ile TEE ≈ ${f(tee,0)} kcal. Kilo yönetimi için hedef ≈ ${f(target,0)} kcal/gün.`, color:'text-indigo-700' });
+    // Enerji sekmesini de güncelle
+    const rmrEl=$('en_rmr'); if(rmrEl && bmr) rmrEl.textContent=bmr;
+    const teeEl=$('en_tee'); if(teeEl && tee) teeEl.textContent=f(tee,0);
+    const tgtEl=$('en_target'); if(tgtEl && target) tgtEl.textContent=f(target,0);
+  }
+
+  el.classList.remove('hidden');
+  el.innerHTML = `
+    <div class="border-t border-teal-100 pt-2">
+      <p class="text-[11px] font-bold text-teal-800 uppercase tracking-wide mb-2 flex items-center gap-1.5"><i class="fa-solid fa-lightbulb text-teal-500"></i> Tanita Bazlı Beslenme Önerileri</p>
+      <div class="space-y-2">
+        ${recs.map(r=>`<div class="bg-white rounded-xl p-2.5 border border-teal-100 text-xs">
+          <p class="font-bold ${r.color} mb-0.5">${r.title}</p>
+          <p class="text-slate-600">${r.text}</p>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
