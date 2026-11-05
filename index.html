@@ -1813,66 +1813,136 @@ function selectGFormRow(idx) {
 }
 
 function fillFromGForm(data) {
-  // Google Sheet başlıkları → Form alan eşleştirmesi
-  // Başlıklar: Email, Ad ve Soyad, Cinsiyet, Telefon Numarası, Meslek ve Öğrenim Durumu, Doğum Tarihi
-  const map = {
-    'Ad ve Soyad':                        'cnt_name',
-    'Adı Soyadı':                         'cnt_name',
-    'Ad Soyad':                           'cnt_name',
-    'Cinsiyet':                           null,
-    'Telefon Numarası':                   'cnt_phone',
-    'Telefon':                            'cnt_phone',
-    'Meslek ve Öğrenim Durumu':           'cnt_job',
-    'Meslek':                             'cnt_job',
-    'Doğum Tarihi':                       'cnt_dob',
-    'Doğum tarihi':                       'cnt_dob',
-    // Yemek tercihleri / kısıtlamalar
-    'Yemediğiniz / Yiyemediğiniz Besinler': 'cnt_dislikes',
-    'Yemediğiniz Besinler':               'cnt_dislikes',
-    'Sevmediğiniz Yiyecekler':            'cnt_dislikes',
-    'Yemek İstemediğiniz Yiyecekler':    'cnt_dislikes',
-    'Yemem':                              'cnt_dislikes',
-    'Alerji / İntolerans':                'cnt_allergy',
-    'Alerji ve İntolerans':               'cnt_allergy',
-    'Besin Alerjisi':                     'cnt_allergy',
-    'Email':                              null,
+  // ── Kesin eşleşmeler ──
+  const exactMap = {
+    'Ad ve Soyad':              'cnt_name',
+    'Adı Soyadı':               'cnt_name',
+    'Ad Soyad':                 'cnt_name',
+    'İsim Soyisim':             'cnt_name',
+    'Telefon Numarası':         'cnt_phone',
+    'Telefon':                  'cnt_phone',
+    'Meslek ve Öğrenim Durumu': 'cnt_job',
+    'Meslek':                   'cnt_job',
+    'Doğum Tarihi':             'cnt_dob',
+    'Doğum tarihi':             'cnt_dob',
+    'Email':                    '__skip__',
+    'E-posta Adresi':           '__skip__',
+    'Zaman Damgası':            '__skip__',
+    'Timestamp':                '__skip__',
+    'Cinsiyet':                 '__cinsiyet__',
   };
+
+  // ── Anahtar kelime ile fuzzy eşleşme ──
+  function fuzzyTarget(key) {
+    const k = key.toLowerCase();
+    // Yemem / dislikes
+    if (k.includes('yemezsiniz') || k.includes('yemiyorum') || k.includes('sevmediğin') ||
+        k.includes('yemediğin') || k.includes('yiyemediğin') || k.includes('neleri hiç'))
+      return 'cnt_dislikes';
+    // Alerji
+    if (k.includes('alerji') || k.includes('intolerans') || k.includes('tolere edem'))
+      return 'cnt_allergy';
+    // Başvuru / hedef
+    if (k.includes('neden') && (k.includes('beslenme') || k.includes('başvur') || k.includes('ihtiyaç') || k.includes('programına')))
+      return 'cnt_goal';
+    if (k.includes('hedef') || k.includes('amaç'))
+      return 'cnt_goal';
+    // Şikayet / hastalık geçmişi
+    if (k.includes('şikayet') || k.includes('yakınma') || k.includes('rahatsızlık'))
+      return 'cnt_complaint';
+    if (k.includes('hastalık') || k.includes('ameliyat') || k.includes('ilaç') || k.includes('takviye'))
+      return 'cnt_complaint';
+    // Daha önce diyet
+    if (k.includes('daha önce') && k.includes('diyet'))
+      return 'cnt_complaint';
+    // Meslek fallback
+    if (k.includes('meslek') || k.includes('öğrenim') || k.includes('eğitim durumu'))
+      return 'cnt_job';
+    // Boy & kilo (aynı alanda olabilir)
+    if (k.includes('boy') && k.includes('kilo'))
+      return '__boykilo__';
+    return null;
+  }
+
+  // ── Tarih ayrıştır: dd/MM/yyyy [HH:mm] → YYYY-MM-DD ──
+  function parseDateVal(val) {
+    const datePart = val.split(' ')[0]; // HH:mm varsa at
+    const parts = datePart.split('/');
+    if (parts.length !== 3) return null;
+    let dd, mm, yyyy;
+    // Yıl her zaman 4 haneli; hangi pozisyonda olduğuna bak
+    if (parts[2].length === 4) {
+      // dd/MM/yyyy veya MM/dd/yyyy
+      // İlk parça > 12 ise kesinlikle gün
+      if (parseInt(parts[0]) > 12) { [dd, mm, yyyy] = parts; }
+      else { [dd, mm, yyyy] = parts; } // apps_script dd/MM/yyyy gönderir
+    } else if (parts[0].length === 4) {
+      [yyyy, mm, dd] = parts;
+    } else return null;
+    const y = yyyy.padStart(4,'0'), m = mm.padStart(2,'0'), d = dd.padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+
   let filled = 0;
+  const skipped = [];
+
   Object.keys(data).forEach(key => {
     const val = String(data[key] || '').trim();
     if (!val) return;
-    if (map[key] === null) {
-      // Cinsiyet özel işlem
-      if (key.toLowerCase().includes('cinsiyet')) {
-        const sex = val.toLowerCase().includes('erkek') ? 'E' : 'K';
-        const el = $('cnt_sex'); if (el) el.value = sex;
-        filled++;
+
+    const target = exactMap.hasOwnProperty(key) ? exactMap[key] : fuzzyTarget(key);
+
+    if (target === '__skip__' || target === null) { skipped.push(key); return; }
+
+    // Cinsiyet
+    if (target === '__cinsiyet__' || key.toLowerCase().includes('cinsiyet')) {
+      const el = $('cnt_sex'); if (!el) return;
+      el.value = val.toLowerCase().includes('erkek') ? 'E' : 'K';
+      filled++; return;
+    }
+
+    // Boy & Kilo aynı alanda (örn. "170 cm / 65 kg")
+    if (target === '__boykilo__') {
+      const nums = val.match(/\d+([.,]\d+)?/g);
+      if (nums && nums.length >= 2) {
+        const n1 = parseFloat(nums[0]), n2 = parseFloat(nums[1]);
+        const height = Math.max(n1,n2), weight = Math.min(n1,n2);
+        const hEl = $('cnt_height'), wEl = $('cnt_weight');
+        if (hEl && height > 100) { hEl.value = height; filled++; }
+        if (wEl && weight > 20)  { wEl.value = weight; filled++; }
       }
-    } else if (map[key]) {
-      const el = $(map[key]);
-      if (el) {
-        // Tarih formatı: DD/MM/YYYY veya MM/DD/YYYY → input[date] YYYY-MM-DD
-        if (map[key] === 'cnt_dob' && val.includes('/')) {
-          const parts = val.split('/');
-          if (parts.length === 3) {
-            // Google Forms MM/DD/YYYY döndürür
-            const [mm, dd, yyyy] = parts;
-            el.value = `${yyyy.padStart(4,'0')}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
-          }
-        } else {
-          el.value = val;
-        }
-        filled++;
-      }
+      return;
+    }
+
+    const el = $(target);
+    if (!el) return;
+
+    // Tarih alanı
+    if (target === 'cnt_dob' && val.includes('/')) {
+      const iso = parseDateVal(val);
+      if (iso) { el.value = iso; filled++; }
+      return;
+    }
+
+    // Metin alanları: birden fazla kaynak için birleştir (goal/complaint/dislikes)
+    if (['cnt_goal','cnt_complaint','cnt_dislikes','cnt_allergy'].includes(target)) {
+      const existing = el.value.trim();
+      el.value = existing ? existing + '\n' + val : val;
+      filled++;
+    } else {
+      el.value = val;
+      filled++;
     }
   });
+
   // Doğum tarihinden yaş hesapla
   const dobEl = $('cnt_dob');
   if (dobEl && dobEl.value) {
     const dob = new Date(dobEl.value);
-    if (!isNaN(dob)) $('cnt_age').value = Math.floor((new Date()-dob)/(365.25*24*3600*1000));
+    if (!isNaN(dob)) { const ageEl = $('cnt_age'); if(ageEl) ageEl.value = Math.floor((new Date()-dob)/(365.25*24*3600*1000)); }
   }
-  showGFormStatus('success', `✔ ${filled} alan dolduruldu: ${Object.values(data).filter(v=>v).length > 0 ? Object.keys(data).filter(k=>data[k]).join(', ') : ''}`);
+
+  showGFormStatus('success', `✔ ${filled} alan dolduruldu`);
   calcBMI(); calcEnergy(); updateBadge();
 }
 
