@@ -1855,6 +1855,9 @@ function fillFromGForm(data) {
     // Daha önce diyet
     if (k.includes('daha önce') && k.includes('diyet'))
       return 'cnt_complaint';
+    // Doğum tarihi
+    if (k.includes('doğum') || k.includes('dogum') || k.includes('birth'))
+      return 'cnt_dob';
     // Meslek fallback
     if (k.includes('meslek') || k.includes('öğrenim') || k.includes('eğitim durumu'))
       return 'cnt_job';
@@ -1867,15 +1870,16 @@ function fillFromGForm(data) {
   // ── Tarih ayrıştır: dd/MM/yyyy [HH:mm] → YYYY-MM-DD ──
   function parseDateVal(val) {
     const datePart = val.split(' ')[0]; // HH:mm varsa at
-    const parts = datePart.split('/');
+    // / . - ayracını otomatik seç
+    const sep = datePart.includes('/') ? '/' : datePart.includes('.') ? '.' : '-';
+    const parts = datePart.split(sep);
     if (parts.length !== 3) return null;
     let dd, mm, yyyy;
     // Yıl her zaman 4 haneli; hangi pozisyonda olduğuna bak
     if (parts[2].length === 4) {
       // dd/MM/yyyy veya MM/dd/yyyy
-      // İlk parça > 12 ise kesinlikle gün
-      if (parseInt(parts[0]) > 12) { [dd, mm, yyyy] = parts; }
-      else { [dd, mm, yyyy] = parts; } // apps_script dd/MM/yyyy gönderir
+      // Apps Script dd/MM/yyyy gönderir
+      [dd, mm, yyyy] = parts;
     } else if (parts[0].length === 4) {
       [yyyy, mm, dd] = parts;
     } else return null;
@@ -1918,7 +1922,7 @@ function fillFromGForm(data) {
     if (!el) return;
 
     // Tarih alanı
-    if (target === 'cnt_dob' && val.includes('/')) {
+    if (target === 'cnt_dob') {
       const iso = parseDateVal(val);
       if (iso) { el.value = iso; filled++; }
       return;
