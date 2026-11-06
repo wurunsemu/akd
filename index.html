@@ -70,14 +70,17 @@
     <button onclick="switchTab('en')" id="nav-en" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
       <i class="fa-solid fa-calculator text-sm"></i> <span class="hidden sm:inline">2.</span> Enerji
     </button>
-    <button onclick="switchTab('dg')" id="nav-dg" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
-      <i class="fa-solid fa-utensils text-sm"></i> <span class="hidden sm:inline">3.</span> Menü
-    </button>
     <button onclick="switchTab('tn')" id="nav-tn" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
-      <i class="fa-solid fa-weight-scale text-sm"></i> <span class="hidden sm:inline">4.</span> Tanita
+      <i class="fa-solid fa-weight-scale text-sm"></i> <span class="hidden sm:inline">3.</span> Tanita
+    </button>
+    <button onclick="switchTab('dg')" id="nav-dg" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+      <i class="fa-solid fa-utensils text-sm"></i> <span class="hidden sm:inline">4.</span> Menü
+    </button>
+    <button onclick="switchTab('rp')" id="nav-rp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+      <i class="fa-solid fa-file-invoice text-sm text-rose-500"></i> <span class="hidden sm:inline">5.</span> Rapor/PDF
     </button>
     <button onclick="switchTab('sp')" id="nav-sp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
-      <i class="fa-solid fa-pills text-sm text-purple-500"></i> <span class="hidden sm:inline">5.</span> Supp. Protokol
+      <i class="fa-solid fa-pills text-sm text-purple-500"></i> <span class="hidden sm:inline">6.</span> Supp. Protokol
     </button>
   </div>
 </nav>
@@ -701,57 +704,7 @@
 
 </section>
 
-<!-- ════ TAB 3: MENÜ PLANLAMA ════ -->
-<section id="tab-dg" class="tab-content hidden space-y-5">
-
-  <!-- ★ Akıllı Menü Yardımcısı -->
-  <div id="menu_recs_panel" class="card bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 space-y-3">
-    <div class="flex items-center justify-between">
-      <h3 class="section-title"><i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i> Akıllı Menü Yardımcısı</h3>
-      <button onclick="renderMenuRecs()" class="text-[11px] text-indigo-500 hover:text-indigo-700 font-semibold flex items-center gap-1"><i class="fa-solid fa-rotate-right"></i> Yenile</button>
-    </div>
-    <div id="menu_recs_content">
-      <p class="text-xs text-slate-400 italic">Danışan bilgilerini (Tab 1) ve enerji hesabını (Tab 2) doldurun — öneriler burada belirecek.</p>
-    </div>
-  </div>
-
-  <div class="card space-y-4">
-    <h3 class="section-title"><i class="fa-solid fa-utensils text-indigo-600"></i> Menü Planlama</h3>
-    <div class="grid grid-cols-2 gap-3">
-      <div>
-        <label class="text-[11px] text-slate-500 font-semibold">Toplam Kalori</label>
-        <input id="mn_kcal" type="number" class="input mt-1" placeholder="kcal/gün">
-      </div>
-      <div>
-        <label class="text-[11px] text-slate-500 font-semibold">Öğün Sayısı</label>
-        <select id="mn_meals" class="input mt-1" onchange="renderMenuForm()">
-          <option value="3">3 Ana öğün</option>
-          <option value="5">3 Ana + 2 Ara öğün</option>
-          <option value="6">3 Ana + 3 Ara öğün</option>
-        </select>
-      </div>
-    </div>
-    <div id="menu_form" class="space-y-3"></div>
-    <textarea id="mn_notes" rows="3" class="input" placeholder="Menü notları, tarifler, özel açıklamalar..."></textarea>
-  </div>
-
-  <!-- Besin Değişim Listeleri -->
-  <div class="card space-y-3">
-    <h3 class="section-title"><i class="fa-solid fa-list-ul text-indigo-600"></i> Besin Değişim Listeleri</h3>
-    <div class="grid grid-cols-2 gap-2">
-      <button onclick="toggleExchange('ekmek')" class="text-xs py-2 px-3 bg-yellow-50 border border-yellow-200 rounded-xl font-semibold text-yellow-800 hover:bg-yellow-100 transition">🍞 Ekmek & Tahıl</button>
-      <button onclick="toggleExchange('et')" class="text-xs py-2 px-3 bg-red-50 border border-red-200 rounded-xl font-semibold text-red-800 hover:bg-red-100 transition">🥩 Et & Protein</button>
-      <button onclick="toggleExchange('sut')" class="text-xs py-2 px-3 bg-blue-50 border border-blue-200 rounded-xl font-semibold text-blue-800 hover:bg-blue-100 transition">🥛 Süt & Ürünleri</button>
-      <button onclick="toggleExchange('sebze')" class="text-xs py-2 px-3 bg-green-50 border border-green-200 rounded-xl font-semibold text-green-800 hover:bg-green-100 transition">🥦 Sebzeler</button>
-      <button onclick="toggleExchange('meyve')" class="text-xs py-2 px-3 bg-orange-50 border border-orange-200 rounded-xl font-semibold text-orange-800 hover:bg-orange-100 transition">🍎 Meyveler</button>
-      <button onclick="toggleExchange('yag')" class="text-xs py-2 px-3 bg-purple-50 border border-purple-200 rounded-xl font-semibold text-purple-800 hover:bg-purple-100 transition">🫒 Yağlar</button>
-    </div>
-    <div id="exchange_panel" class="hidden text-xs space-y-1 bg-slate-50 rounded-xl p-3 border border-slate-100"></div>
-  </div>
-
-</section>
-
-<!-- ════ TAB 4: TANİTA BIA ════ -->
+<!-- ════ TAB 3: TANİTA BIA ════ -->
 <section id="tab-tn" class="tab-content hidden space-y-5">
 
   <!-- Tanita PDF Yükle -->
@@ -828,7 +781,165 @@
 
 </section>
 
-<!-- ════ TAB 5: SUPPLEMENT PROTOKOL ════ -->
+<!-- ════ TAB 4: MENÜ PLANLAMA ════ -->
+<section id="tab-dg" class="tab-content hidden space-y-5">
+
+  <!-- ★ Akıllı Menü Yardımcısı -->
+  <div id="menu_recs_panel" class="card bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="section-title"><i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i> Akıllı Menü Yardımcısı</h3>
+      <button onclick="renderMenuRecs()" class="text-[11px] text-indigo-500 hover:text-indigo-700 font-semibold flex items-center gap-1"><i class="fa-solid fa-rotate-right"></i> Yenile</button>
+    </div>
+    <div id="menu_recs_content">
+      <p class="text-xs text-slate-400 italic">Danışan bilgilerini (Tab 1) ve enerji hesabını (Tab 2) doldurun — öneriler burada belirecek.</p>
+    </div>
+  </div>
+
+  <!-- Buton barı -->
+  <div class="card space-y-3">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div>
+        <h2 class="section-title"><i class="fa-solid fa-list-check text-indigo-600"></i> Menü Planlama & Porsiyonlama</h2>
+        <p class="text-xs text-slate-500 mt-1">Değişim sayılarını girin. Tabloyu değiştirdikçe MPS analizi otomatik güncellenir.</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="loadSampleMenu()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Örnek Dağıtım
+        </button>
+        <button onclick="loadSampleTextMenu()" class="px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-bold hover:bg-teal-700 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-pen-to-square"></i> Örnek Şablon
+        </button>
+      </div>
+    </div>
+    <!-- Shuffle öğün butonları -->
+    <div class="flex flex-wrap gap-2">
+      <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5"><i class="fa-solid fa-shuffle text-indigo-600"></i> Öğün Önerileri:</span>
+      <button type="button" data-meal="0" onclick="shuffleMeal(0)" class="bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Kahvaltı</button>
+      <button type="button" data-meal="1" onclick="shuffleMeal(1)" class="bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Ara 1</button>
+      <button type="button" data-meal="2" onclick="shuffleMeal(2)" class="bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Öğle</button>
+      <button type="button" data-meal="3" onclick="shuffleMeal(3)" class="bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Ara 2</button>
+      <button type="button" data-meal="4" onclick="shuffleMeal(4)" class="bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Akşam</button>
+      <button type="button" data-meal="5" onclick="shuffleMeal(5)" class="bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Ara 3</button>
+      <button type="button" onclick="shuffleAllMeals()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+        <i class="fa-solid fa-dice"></i> Tümünü Değiştir
+      </button>
+    </div>
+    <div id="shuffle_msg" class="text-[11px] font-semibold text-indigo-600 min-h-[14px]"></div>
+  </div>
+
+  <!-- Değişim tablosu -->
+  <div class="card space-y-4">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+            <th class="p-3 min-w-[150px]">Grup</th>
+            <th class="p-3 text-center">Kahvaltı</th>
+            <th class="p-3 text-center">Ara 1</th>
+            <th class="p-3 text-center">Öğle</th>
+            <th class="p-3 text-center">Ara 2</th>
+            <th class="p-3 text-center">Akşam</th>
+            <th class="p-3 text-center">Ara 3</th>
+            <th class="p-3 text-right">Toplam</th>
+          </tr>
+        </thead>
+        <tbody id="exchange-tbody" class="divide-y divide-slate-100 text-slate-800"></tbody>
+        <tfoot>
+          <tr class="bg-slate-800 text-white font-bold">
+            <td class="p-3 text-xs">MENÜ TOPLAMI</td>
+            <td colspan="6" class="p-3 text-right text-xs font-normal text-slate-400">CHO / Protein / Yağ / Enerji:</td>
+            <td id="menu-total-summary" class="p-3 text-right text-emerald-400 font-black text-sm">0 kcal</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="text-[11px] text-slate-400 border-t pt-2">
+      <i class="fa-solid fa-circle-info text-indigo-500"></i> Süt ürünleri pastörize/UHT olmalıdır. <b>Protein Powder</b> gram cinsinden girilir.
+    </p>
+  </div>
+
+  <!-- Hedef vs Menü -->
+  <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+    <div class="card p-4 text-center"><p class="text-[11px] text-slate-500 font-bold uppercase">Enerji (kcal)</p><p id="d1" class="text-sm font-black text-slate-800 mt-1">0 / 0</p></div>
+    <div class="card p-4 text-center"><p class="text-[11px] text-emerald-700 font-bold uppercase">CHO (g)</p><p id="d2" class="text-sm font-black text-emerald-800 mt-1">0 / 0</p></div>
+    <div class="card p-4 text-center"><p class="text-[11px] text-indigo-700 font-bold uppercase">Protein (g)</p><p id="d3" class="text-sm font-black text-indigo-800 mt-1">0 / 0</p></div>
+    <div class="card p-4 text-center"><p class="text-[11px] text-amber-700 font-bold uppercase">Yağ (g)</p><p id="d4" class="text-sm font-black text-amber-800 mt-1">0 / 0</p></div>
+    <div class="card p-4 text-center col-span-2 sm:col-span-1"><p class="text-[11px] text-slate-500 font-bold uppercase">C/P/Y Oranı</p><p id="d5" class="text-sm font-black text-slate-800 mt-1">%0 / %0 / %0</p></div>
+  </div>
+
+  <!-- MPS Analizi -->
+  <div class="card p-5 space-y-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
+      <h2 class="section-title"><i class="fa-solid fa-dna text-indigo-600"></i> Öğün Protein & MPS Tetiklenme Analizi</h2>
+      <span id="mps-target-badge" class="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full border border-indigo-200">Hedef: ~0.25g/kg P/öğün</span>
+    </div>
+    <div id="meal-protein-breakdown" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"></div>
+  </div>
+
+  <!-- Klinik değerlendirme -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="card p-5 space-y-4">
+      <h2 class="section-title border-b border-slate-100 pb-3"><i class="fa-solid fa-clipboard-check text-emerald-600"></i> Otomatik Menü Değerlendirmesi</h2>
+      <div id="eval-container" class="space-y-3"></div>
+    </div>
+    <div class="card p-5 space-y-4">
+      <h2 class="section-title border-b border-slate-100 pb-3"><i class="fa-solid fa-eye text-amber-600"></i> Klinik Kontrol Listesi</h2>
+      <div id="clinical-checklist" class="space-y-2.5 text-xs"></div>
+    </div>
+  </div>
+
+  <!-- Yazılı menü + notlar -->
+  <div class="card space-y-5">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-3 gap-2">
+      <h2 class="section-title"><i class="fa-solid fa-file-signature text-teal-600"></i> Yazılı Menü & Klinik Notlar</h2>
+      <span class="text-xs text-slate-400">Rapor sekmesine otomatik eklenir</span>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-700 flex justify-between items-center">
+          <span><i class="fa-solid fa-utensils text-emerald-600"></i> Danışana Verilecek Yazılı Diyet</span>
+        </label>
+        <textarea id="written_menu" rows="12" placeholder="Örn:&#10;KAHVALTI: 08.00 - 09.00&#10;2 adet yumurtalı omlet&#10;2 dilim tam buğday ekmeği&#10;...&#10;&#10;ÖĞLE: 13.00 - 14.00&#10;..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs leading-relaxed font-mono" oninput="save()"></textarea>
+      </div>
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-700">
+          <i class="fa-solid fa-notes-medical text-indigo-600"></i> Diyetisyen Klinik Notları (Dahili)
+        </label>
+        <textarea id="client_notes" rows="12" placeholder="Ferritin düşük – C vitamini ile demir takviyesi...&#10;Yüksek lif içerikli diyet planlandı..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs leading-relaxed font-mono" oninput="save()"></textarea>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ════ TAB 5: RAPOR & PDF ════ -->
+<section id="tab-rp" class="tab-content hidden space-y-5">
+  <div class="card space-y-4">
+    <!-- Başlık + Butonlar -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4 no-print">
+      <h2 class="section-title"><i class="fa-solid fa-file-invoice text-rose-600"></i> Klinik Rapor & PDF Çıktısı</h2>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="generateReport()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-arrows-rotate"></i> Raporu Oluştur / Yenile
+        </button>
+        <button onclick="downloadDietPDF()" class="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-file-pdf"></i> Diyet PDF'i İndir
+        </button>
+        <button onclick="window.print()" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-print"></i> Yazdır
+        </button>
+      </div>
+    </div>
+    <!-- Durum mesajı -->
+    <div id="diet_pdf_msg" class="text-xs font-semibold min-h-[18px] no-print px-1"></div>
+    <!-- Rapor alanı -->
+    <div id="rpt" class="p-5 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-4">
+      <p class="text-slate-400 text-center py-6">Rapor oluşturmak için "Raporu Oluştur" butonuna tıklayın.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════ TAB 6: SUPPLEMENT PROTOKOL ════ -->
 <section id="tab-sp" class="tab-content hidden space-y-5">
 
   <div class="card">
@@ -1480,7 +1591,8 @@ function switchTab(tabId) {
   window.scrollTo(0,0);
   if (tabId==='tn') renderBIAHistory();
   if (tabId==='sp') { renderSuppClinRecs(); suppLoad(); }
-  if (tabId==='dg') renderMenuRecs();
+  if (tabId==='dg') { renderExchangeTable(); renderMenuRecs(); }
+  if (tabId==='rp') generateReport();
 }
 
 /* ══ BAŞLANGIÇ ══ */
@@ -1518,6 +1630,7 @@ window.onload = () => {
 
   suppLoad();
   $('cnt_date').valueAsDate = new Date();
+  renderExchangeTable();
 
   // Tanita drop zone click
   const dz = $('tanita_drop_zone');
@@ -1746,7 +1859,480 @@ function renderMenuRecs() {
   el.innerHTML = [kcalHtml, avoidHtml, notesHtml, foodHtml].filter(Boolean).join('');
 }
 
-/* ══ GOOGLE FORM ENTEGRASYONU ══ */
+/* ════════════════════════════════════════════════════
+   MENÜ PLANLAMA – DEĞİŞİM SİSTEMİ
+════════════════════════════════════════════════════ */
+
+const EX = [
+  { name: "Süt (Tam Yağlı)",            cho: 9,    pro: 6,    fat: 6,    kcal: 114,  isGram: false },
+  { name: "Süt (Yarım Yağlı)",          cho: 9,    pro: 6,    fat: 3,    kcal: 87,   isGram: false },
+  { name: "Süt (Yağsız)",               cho: 9,    pro: 6,    fat: 0,    kcal: 60,   isGram: false },
+  { name: "Et / Peynir / Yumurta",      cho: 0,    pro: 6,    fat: 5,    kcal: 69,   isGram: false },
+  { name: "Karbonhidrat (Ekmek/Tahıl)", cho: 15,   pro: 2,    fat: 0,    kcal: 68,   isGram: false },
+  { name: "Sebze",                       cho: 6,    pro: 2,    fat: 0,    kcal: 32,   isGram: false },
+  { name: "Meyve",                       cho: 15,   pro: 0,    fat: 0,    kcal: 60,   isGram: false },
+  { name: "Yağ",                         cho: 0,    pro: 0,    fat: 5,    kcal: 45,   isGram: false },
+  { name: "Protein Powder (g)",          cho: 0.05, pro: 0.80, fat: 0.03, kcal: 3.67, isGram: true  }
+];
+const ML = ["Kahvaltı","Ara 1","Öğle","Ara 2","Akşam","Ara 3"];
+
+function renderExchangeTable() {
+  const tbody = $('exchange-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  EX.forEach((ex, i) => {
+    const unit = ex.isGram ? 'g' : 'porsiyon';
+    const cells = ML.map((m, j) =>
+      `<td class="p-2 text-center">
+        <input type="number" id="m${i}_${j}" min="0" step="${ex.isGram?5:0.5}" value="0"
+          class="w-16 text-center bg-slate-50 border border-slate-200 rounded-lg p-1 text-xs focus:ring-2 focus:ring-indigo-300 focus:outline-none"
+          oninput="calcExchange(); save()" placeholder="0" title="${m}">
+      </td>`
+    ).join('');
+    tbody.innerHTML += `<tr class="hover:bg-indigo-50/30 transition">
+      <td class="p-3 font-semibold text-xs text-slate-700 whitespace-nowrap">
+        <span class="inline-block w-2 h-2 rounded-full bg-indigo-400 mr-1.5"></span>${ex.name}
+        <span class="text-[10px] text-slate-400 font-normal block ml-3.5">${unit}</span>
+      </td>
+      ${cells}
+      <td id="t${i}" class="p-3 text-right text-xs font-black text-indigo-700">0</td>
+    </tr>`;
+  });
+  calcExchange();
+}
+
+function calcExchange() {
+  const kg   = parseFloat(($('cnt_weight')||{}).value) || 0;
+  const teeEl = $('en_target');
+  const tee  = teeEl ? parseFloat(teeEl.textContent) || 0 : 0;
+  const proEl = $('macro_pro');
+  const choEl = $('macro_cho');
+  const fatEl = $('macro_fat');
+  const targetPro = proEl ? parseFloat(proEl.textContent) || 0 : 0;
+  const targetCho = choEl ? parseFloat(choEl.textContent) || 0 : 0;
+  const targetFat = fatEl ? parseFloat(fatEl.textContent) || 0 : 0;
+
+  let totalKcal=0, totalCho=0, totalPro=0, totalFat=0;
+  const mealPro = Array(ML.length).fill(0);
+
+  EX.forEach((ex, i) => {
+    let rowTotal=0;
+    ML.forEach((m, j) => {
+      const v = parseFloat(($(`m${i}_${j}`)||{}).value) || 0;
+      const mul = ex.isGram ? v : v;
+      totalKcal += ex.kcal * mul;
+      totalCho  += ex.cho  * mul;
+      totalPro  += ex.pro  * mul;
+      totalFat  += ex.fat  * mul;
+      mealPro[j]+= ex.pro  * mul;
+      rowTotal  += v;
+    });
+    const tEl = $(`t${i}`);
+    if (tEl) tEl.textContent = ex.isGram ? rowTotal+'g' : rowTotal;
+  });
+
+  // Hedef vs Menü kartları
+  function fmtDiff(val, tgt) {
+    if (!tgt) return Math.round(val);
+    const diff = Math.round(val - tgt);
+    const sign = diff >= 0 ? '+' : '';
+    return `${Math.round(val)} / ${tgt} <span class="text-[10px] font-normal ${diff>0?'text-orange-600':diff<0?'text-blue-600':'text-emerald-600'}">(${sign}${diff})</span>`;
+  }
+  const totEl = $('menu-total-summary');
+  if (totEl) totEl.innerHTML = `${Math.round(totalKcal)} kcal<br><span class="text-[10px] font-normal text-slate-400">K:${Math.round(totalCho)}g P:${Math.round(totalPro)}g Y:${Math.round(totalFat)}g</span>`;
+
+  const d1=$('d1'),d2=$('d2'),d3=$('d3'),d4=$('d4'),d5=$('d5');
+  if (d1) d1.innerHTML = fmtDiff(totalKcal, tee);
+  if (d2) d2.innerHTML = fmtDiff(totalCho,  targetCho);
+  if (d3) d3.innerHTML = fmtDiff(totalPro,  targetPro);
+  if (d4) d4.innerHTML = fmtDiff(totalFat,  targetFat);
+  const sumMacro = totalKcal || 1;
+  if (d5) d5.textContent = `%${Math.round(totalCho*4/sumMacro*100)} / %${Math.round(totalPro*4/sumMacro*100)} / %${Math.round(totalFat*9/sumMacro*100)}`;
+
+  // MPS badge
+  const badgeEl = $('mps-target-badge');
+  if (badgeEl) badgeEl.textContent = `Hedef: ~${kg?'≥'+(kg*0.25).toFixed(1):'0.25×kg'} g P/öğün`;
+
+  renderMealProteinBreakdown(mealPro, kg);
+  evaluateMenu(totalKcal, tee, totalPro, targetPro, totalCho, targetCho, mealPro, kg);
+}
+
+function renderMealProteinBreakdown(mealPro, kg) {
+  const container = $('meal-protein-breakdown');
+  if (!container) return;
+  const mpsThresh = kg * 0.25;
+  container.innerHTML = ML.map((m, j) => {
+    const p = mealPro[j] || 0;
+    const hit = mpsThresh > 0 && p >= mpsThresh;
+    const color = hit ? 'emerald' : (p > 0 ? 'amber' : 'slate');
+    const icon  = hit ? 'fa-bolt' : (p > 0 ? 'fa-triangle-exclamation' : 'fa-minus');
+    const pct   = mpsThresh > 0 ? Math.min(100, Math.round(p/mpsThresh*100)) : 0;
+    return `<div class="bg-${color}-50 border border-${color}-200 rounded-xl p-3 text-center space-y-1.5">
+      <p class="text-[11px] font-bold text-${color}-700">${m}</p>
+      <p class="text-xl font-black text-${color}-800">${p.toFixed(1)}g</p>
+      <div class="w-full bg-${color}-100 rounded-full h-1.5">
+        <div class="bg-${color}-500 h-1.5 rounded-full" style="width:${pct}%"></div>
+      </div>
+      <p class="text-[10px] text-${color}-600 font-semibold flex items-center justify-center gap-1">
+        <i class="fa-solid ${icon} text-[9px]"></i>
+        ${hit ? 'MPS ✓' : (mpsThresh>0 ? Math.round(mpsThresh-p).toFixed(0)+'g eksik' : '—')}
+      </p>
+    </div>`;
+  }).join('');
+}
+
+function evaluateMenu(totalKcal, tee, totalPro, targetPro, totalCho, targetCho, mealPro, kg) {
+  const ec = $('eval-container');
+  if (!ec) return;
+
+  const items = [];
+
+  // 1. Enerji dengesi
+  if (tee > 0) {
+    const diff = totalKcal - tee;
+    const pct  = Math.abs(diff/tee*100);
+    const ok   = pct <= 10;
+    const warn = pct > 10 && pct <= 20;
+    items.push({
+      ok, warn: !ok && warn,
+      title: 'Enerji Dengesi',
+      text: `Menü ${Math.round(totalKcal)} kcal | Hedef ${Math.round(tee)} kcal (${diff>=0?'+':''}${Math.round(diff)} kcal, %${pct.toFixed(1)} sapma)`,
+      icon: ok ? 'fa-check-circle text-emerald-600' : (warn ? 'fa-triangle-exclamation text-amber-500' : 'fa-xmark-circle text-red-600')
+    });
+  }
+
+  // 2. Protein yeterliliği
+  if (targetPro > 0) {
+    const pct = totalPro / targetPro * 100;
+    const ok  = pct >= 90 && pct <= 115;
+    items.push({
+      ok, warn: pct < 90,
+      title: 'Protein Hedefi',
+      text: `${totalPro.toFixed(1)}g / ${targetPro}g (${pct.toFixed(0)}%) — ${ok ? 'Hedef karşılandı' : pct<90 ? 'Yetersiz protein' : 'Fazla protein'}`,
+      icon: ok ? 'fa-check-circle text-emerald-600' : 'fa-triangle-exclamation text-amber-500'
+    });
+  }
+
+  // 3. MPS dağılımı
+  if (kg > 0) {
+    const thresh = kg * 0.25;
+    const mpsHits = mealPro.filter(p => p >= thresh).length;
+    const mealCount = mealPro.filter(p => p > 0).length;
+    const ok = mpsHits >= Math.max(3, mealCount - 1);
+    items.push({
+      ok, warn: !ok && mpsHits >= 2,
+      title: 'MPS Dağılımı',
+      text: `${mpsHits}/${mealCount} öğün MPS eşiğini (${thresh.toFixed(1)}g) karşılıyor`,
+      icon: ok ? 'fa-check-circle text-emerald-600' : 'fa-triangle-exclamation text-amber-500'
+    });
+  }
+
+  // 4. KH yeterliliği
+  if (targetCho > 0) {
+    const pct = totalCho / targetCho * 100;
+    const ok  = pct >= 85 && pct <= 120;
+    items.push({
+      ok, warn: !ok,
+      title: 'Karbonhidrat',
+      text: `${totalCho.toFixed(1)}g / ${targetCho}g (%${pct.toFixed(0)}) — ${ok ? 'Yeterli' : pct<85 ? 'Yetersiz KH' : 'Yüksek KH'}`,
+      icon: ok ? 'fa-check-circle text-emerald-600' : 'fa-triangle-exclamation text-amber sebze-500'
+    });
+  }
+
+  if (!items.length) {
+    ec.innerHTML = '<p class="text-xs text-slate-400 italic">Enerji ve makro hedeflerini Tab 2\'de hesaplayın.</p>';
+    return;
+  }
+
+  ec.innerHTML = items.map(it => `
+    <div class="flex items-start gap-2.5 p-3 rounded-xl ${it.ok ? 'bg-emerald-50 border border-emerald-100' : it.warn ? 'bg-amber-50 border border-amber-100' : 'bg-red-50 border border-red-100'}">
+      <i class="fa-solid ${it.icon} mt-0.5 text-sm flex-shrink-0"></i>
+      <div>
+        <p class="text-xs font-bold text-slate-700">${it.title}</p>
+        <p class="text-[11px] text-slate-600 mt-0.5">${it.text}</p>
+      </div>
+    </div>`).join('');
+
+  // Klinik kontrol listesi
+  const cl = $('clinical-checklist');
+  if (!cl) return;
+  const checkItems = [
+    { label: 'Protein sabah öğününde ≥20g',    ok: (mealPro[0]||0) >= 20 },
+    { label: 'Gece öncesi protein (Ara3) ≥20g', ok: (mealPro[5]||0) >= 20 },
+    { label: '≥4 öğün planlandı',               ok: mealPro.filter(p=>p>0).length >= 4 },
+    { label: 'Sebze grubu en az 1 öğünde',      ok: (()=>{ let any=false; for(let j=0;j<ML.length;j++) if ((parseFloat(($('m5_'+j)||{}).value)||0)>0) {any=true;break;} return any; })() },
+    { label: 'Meyve en az 1 öğünde',            ok: (()=>{ let any=false; for(let j=0;j<ML.length;j++) if ((parseFloat(($('m6_'+j)||{}).value)||0)>0) {any=true;break;} return any; })() },
+    { label: 'Protein grubu her ana öğünde',    ok: [0,2,4].every(j=> (parseFloat(($('m3_'+j)||{}).value)||0)>0) },
+    { label: 'Yağ kaynağı planlandı',           ok: (()=>{ let tot=0; for(let j=0;j<ML.length;j++) tot+=(parseFloat(($('m7_'+j)||{}).value)||0); return tot>0; })() },
+    { label: '💧 Hidrasyon hatırlatıcısı ekle (manuel)',   ok: false, manual: true }
+  ];
+  cl.innerHTML = checkItems.map(c => `
+    <div class="flex items-center gap-2.5 ${c.manual?'opacity-60':''}">
+      <i class="fa-solid ${c.ok ? 'fa-circle-check text-emerald-500' : (c.manual ? 'fa-circle-info text-blue-400' : 'fa-circle-xmark text-slate-300')} text-sm flex-shrink-0"></i>
+      <span class="text-[11px] ${c.ok?'text-slate-700 font-semibold':'text-slate-500'}">${c.label}</span>
+    </div>`).join('');
+}
+
+function loadSampleMenu() {
+  // Tipik klinik dağılım: ~1800 kcal, orta protein
+  const sample = [
+  //  G0=SütT G1=SütY G2=SütY0 G3=Et G4=KH G5=Sbz G6=Meyve G7=Yağ G8=PP
+  //  Kah  Ara1 Öğl  Ara2 Akş  Ara3
+    [0,   0,   0,   0,   0,   0],  // Süt Tam
+    [1,   0,   0,   1,   0,   0],  // Süt Yarım
+    [0,   0,   0,   0,   0,   0],  // Süt Yağsız
+    [1,   0,   2,   0,   2,   1],  // Et/Peynir/Yumurta
+    [2,   0,   2,   0,   2,   0],  // Karbonhidrat
+    [1,   0,   2,   0,   2,   0],  // Sebze
+    [0,   1,   0,   1,   0,   0],  // Meyve
+    [1,   0,   1,   0,   1,   0],  // Yağ
+    [0,   0,   0,   0,   0,  25],  // Protein Powder (g)
+  ];
+  EX.forEach((ex, i) => {
+    ML.forEach((m, j) => {
+      const el = $(`m${i}_${j}`);
+      if (el) el.value = sample[i][j] || 0;
+    });
+  });
+  calcExchange(); save();
+  $('shuffle_msg').textContent = '✅ Örnek dağılım yüklendi (yaklaşık 1800 kcal).';
+  setTimeout(()=>{ const sm=$('shuffle_msg'); if(sm) sm.textContent=''; }, 3000);
+}
+
+function loadSampleTextMenu() {
+  const wm = $('written_menu');
+  if (wm) wm.value = `KAHVALTI (07:30 – 08:30)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 2 adet yumurta (haşlanmış veya omlet, az yağlı)
+• 1 dilim tam buğday ekmeği
+• 50g beyaz peynir / lor peyniri
+• Bol domates, salatalık, maydanoz
+• 1 su bardağı süt veya ayran
+• Yeşil / siyah zeytin (3-4 adet)
+
+ARA ÖĞÜN 1 (10:30)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 1 adet orta boy meyve (elma / armut / mandalina)
+• 150g yoğurt (sade, az yağlı)
+
+ÖĞLE (12:30 – 13:30)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 150g ızgara tavuk / balık / kırmızı et
+• 1 kase sebze çorbası (az tuzlu)
+• 2-3 kaşık bulgur pilavı / kepekli makarna
+• Bol yeşil salata (zeytinyağı ile)
+• 1 tatlı kaşığı zeytinyağı
+
+ARA ÖĞÜN 2 (15:30 – 16:00)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 1 küçük meyve
+• 1 avuç çiğ badem / ceviz
+
+AKŞAM (19:00 – 20:00)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 150g et / balık / baklagil
+• Bol ızgara / buğulama sebze
+• 2 kaşık bulgur / kuru fasulye / mercimek
+• 1 tatlı kaşığı zeytinyağı
+• Yoğurt / kefir (150g)
+
+ARA ÖĞÜN 3 (21:30 – 22:00)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 150g süzme yoğurt
+• 1 kaşık bal veya tarçın
+
+💧 GÜN BOYUNCA: En az 2-2.5 litre su
+☕ Çay/kahve yemekten ≥1 saat sonra (tanen/demir etkileşimi)`;
+
+  const cn = $('client_notes');
+  if (cn) cn.value = `Klinik notlar:
+• Ferritin düşük ise her öğünde C vitamini kaynağı eklenecek.
+• Öğün atlamaması özellikle belirtildi.
+• Lif alımını kademeli artırın (İBS riski minimize etmek için).
+• Tuz kısıtı: günlük <5g (HT varsa).
+• Alkol önerilmedi.
+• Sonraki randevu: __ hafta sonra. Hedef kilo: __ kg.`;
+
+  save();
+}
+
+function shuffleMeal(mealIndex) {
+  // Basit shuffle: o öğünün protein değişimini rastgele ayarla
+  const proOptions = [1, 1.5, 2, 2.5];
+  const karbOptions = [0, 0.5, 1, 1.5, 2];
+  const fatOptions = [0, 0.5, 1];
+  const sbzOptions = [0, 1, 1.5, 2];
+
+  const rnd = arr => arr[Math.floor(Math.random()*arr.length)];
+  // Sadece Et/Peynir, KH, Sebze, Yağ değiştir (Süt, Meyve dokunulmasın)
+  const el3 = $(`m3_${mealIndex}`); if (el3) el3.value = rnd(proOptions);
+  const el4 = $(`m4_${mealIndex}`); if (el4) el4.value = rnd(karbOptions);
+  const el5 = $(`m5_${mealIndex}`); if (el5) el5.value = rnd(sbzOptions);
+  const el7 = $(`m7_${mealIndex}`); if (el7) el7.value = rnd(fatOptions);
+
+  calcExchange(); save();
+  const sm = $('shuffle_msg');
+  if (sm) { sm.textContent = `🎲 ${ML[mealIndex]} öğünü değiştirildi.`; setTimeout(()=>sm.textContent='', 2000); }
+}
+
+function shuffleAllMeals() {
+  ML.forEach((m, j) => shuffleMeal(j));
+  const sm = $('shuffle_msg');
+  if (sm) { sm.textContent = '🎲 Tüm öğünler yeniden dağıtıldı!'; setTimeout(()=>sm.textContent='', 2500); }
+}
+
+/* ════ RAPOR OLUŞTURMA ════ */
+function generateReport() {
+  const rpt = $('rpt'); if (!rpt) return;
+  const name   = ($('cnt_name')||{}).value   || '—';
+  const dob    = ($('cnt_dob')||{}).value    || '';
+  const age    = ($('cnt_age')||{}).value    || '—';
+  const sex    = ($('cnt_sex')||{}).value    || '—';
+  const height = ($('cnt_height')||{}).value || '—';
+  const weight = ($('cnt_weight')||{}).value || '—';
+  const date   = ($('cnt_date')||{}).value   || new Date().toLocaleDateString('tr-TR');
+
+  const teeEl = $('en_target');
+  const tee   = teeEl ? teeEl.textContent : '—';
+  const proEl = $('macro_pro');
+  const choEl = $('macro_cho');
+  const fatEl = $('macro_fat');
+  const targetPro = proEl ? proEl.textContent : '—';
+  const targetCho = choEl ? choEl.textContent : '—';
+  const targetFat = fatEl ? fatEl.textContent : '—';
+
+  // BMI
+  const bmiEl = $('bmi_val');
+  const bmi   = bmiEl ? bmiEl.textContent : '—';
+
+  // Tanita
+  const ffmEl = $('tn_ffm'); const ffm = ffmEl ? ffmEl.value : '—';
+  const bfpEl = $('tn_bf');  const bfp = bfpEl ? bfpEl.value : '—';
+
+  // Tanılar
+  const dxIds = ['dx_obez','dx_dm2','dx_ir','dx_ht','dx_dislip','dx_pkos',
+                  'dx_hipo','dx_hiper','dx_anemi','dx_osteo','dx_ibs','dx_ye','dx_dm1','dx_celiac'];
+  const dxLabels = {
+    dx_obez:'Obezite',dx_dm2:'DM Tip 2',dx_ir:'İnsülin Direnci',dx_ht:'Hipertansiyon',
+    dx_dislip:'Dislipidemi',dx_pkos:'PKOS',dx_hipo:'Hipotiroidi',dx_hiper:'Hipertiroidi',
+    dx_anemi:'Anemi',dx_osteo:'Osteoporoz',dx_ibs:'İBS',dx_ye:'Yeme Bozukluğu',
+    dx_dm1:'DM Tip 1',dx_celiac:'Çölyak'
+  };
+  const dxList = dxIds.filter(id => { const el=$(id); return el && el.checked; }).map(id => dxLabels[id]);
+
+  // Menü toplamları
+  let totalKcal=0, totalCho=0, totalPro=0, totalFat=0;
+  EX.forEach((ex, i) => {
+    ML.forEach((m, j) => {
+      const v = parseFloat(($(`m${i}_${j}`)||{}).value) || 0;
+      totalKcal += ex.kcal * v;
+      totalCho  += ex.cho  * v;
+      totalPro  += ex.pro  * v;
+      totalFat  += ex.fat  * v;
+    });
+  });
+
+  const writtenMenu   = ($('written_menu')||{}).value  || '';
+  const clientNotes   = ($('client_notes')||{}).value  || '';
+  const tnNotes       = ($('tn_notes')||{}).value      || '';
+
+  rpt.innerHTML = `
+  <div class="space-y-5 font-sans text-xs text-slate-800">
+    <!-- Başlık -->
+    <div class="text-center border-b-2 border-indigo-200 pb-4">
+      <h1 class="text-lg font-black text-indigo-800">KLİNİK DİYETİSYEN RAPORU</h1>
+      <p class="text-slate-500 mt-1">Diyetisyen: Uzman Diyetisyen Yunus Aksu &nbsp;|&nbsp; Rapor Tarihi: ${date}</p>
+    </div>
+    <!-- Danışan -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+        <p class="text-[10px] text-slate-500 font-bold uppercase">Danışan</p>
+        <p class="font-black text-slate-800 mt-1 text-sm">${name}</p>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+        <p class="text-[10px] text-slate-500 font-bold uppercase">Yaş / Cinsiyet</p>
+        <p class="font-bold text-slate-700 mt-1">${age} yaş / ${sex==='E'?'Erkek':sex==='K'?'Kadın':sex}</p>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+        <p class="text-[10px] text-slate-500 font-bold uppercase">Boy / Kilo / BMI</p>
+        <p class="font-bold text-slate-700 mt-1">${height}cm / ${weight}kg / ${bmi}</p>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+        <p class="text-[10px] text-slate-500 font-bold uppercase">BIA: YSK / VYY</p>
+        <p class="font-bold text-slate-700 mt-1">${ffm}kg / %${bfp}</p>
+      </div>
+    </div>
+    <!-- Tanı -->
+    ${dxList.length ? `<div class="bg-red-50 border border-red-200 rounded-xl p-3">
+      <p class="text-[10px] font-bold text-red-700 uppercase mb-1.5">Tanı / Klinik Durum</p>
+      <div class="flex flex-wrap gap-1.5">${dxList.map(d=>`<span class="bg-red-100 text-red-800 border border-red-200 rounded-full px-2.5 py-0.5 text-xs font-semibold">${d}</span>`).join('')}</div>
+    </div>` : ''}
+    <!-- Enerji & Makro Hedefleri -->
+    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 space-y-2">
+      <p class="text-[11px] font-black text-indigo-800 uppercase tracking-wide">⚡ Enerji & Makro Hedefleri</p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+        <div><p class="text-[10px] text-indigo-600 font-bold">TEE (kcal)</p><p class="text-lg font-black text-indigo-800">${tee}</p></div>
+        <div><p class="text-[10px] text-emerald-600 font-bold">Protein (g)</p><p class="text-lg font-black text-emerald-800">${targetPro}g</p></div>
+        <div><p class="text-[10px] text-yellow-600 font-bold">KH (g)</p><p class="text-lg font-black text-yellow-700">${targetCho}g</p></div>
+        <div><p class="text-[10px] text-purple-600 font-bold">Yağ (g)</p><p class="text-lg font-black text-purple-800">${targetFat}g</p></div>
+      </div>
+    </div>
+    <!-- Menü Özeti -->
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-2">
+      <p class="text-[11px] font-black text-emerald-800 uppercase tracking-wide">📊 Planlanan Menü Özeti</p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+        <div><p class="text-[10px] text-slate-600 font-bold">Enerji</p><p class="text-lg font-black text-slate-800">${Math.round(totalKcal)} kcal</p></div>
+        <div><p class="text-[10px] text-emerald-600 font-bold">CHO</p><p class="text-lg font-black text-emerald-800">${totalCho.toFixed(1)}g</p></div>
+        <div><p class="text-[10px] text-indigo-600 font-bold">Protein</p><p class="text-lg font-black text-indigo-800">${totalPro.toFixed(1)}g</p></div>
+        <div><p class="text-[10px] text-amber-600 font-bold">Yağ</p><p class="text-lg font-black text-amber-800">${totalFat.toFixed(1)}g</p></div>
+      </div>
+    </div>
+    <!-- Yazılı Diyet -->
+    ${writtenMenu ? `<div class="border border-slate-200 rounded-xl p-4 space-y-2">
+      <p class="text-[11px] font-black text-slate-700 uppercase tracking-wide">🍽️ Danışana Verilen Diyet Listesi</p>
+      <pre class="whitespace-pre-wrap font-mono text-xs text-slate-700 leading-relaxed bg-slate-50 rounded-lg p-3">${writtenMenu}</pre>
+    </div>` : ''}
+    <!-- BIA Notu -->
+    ${tnNotes ? `<div class="border border-teal-200 bg-teal-50 rounded-xl p-4 space-y-1">
+      <p class="text-[11px] font-black text-teal-700 uppercase tracking-wide">⚖️ BIA / Vücut Kompozisyonu Notu</p>
+      <p class="text-xs text-teal-800 whitespace-pre-wrap">${tnNotes}</p>
+    </div>` : ''}
+    <!-- Klinik Notlar -->
+    ${clientNotes ? `<div class="border border-amber-200 bg-amber-50 rounded-xl p-4 space-y-1">
+      <p class="text-[11px] font-black text-amber-700 uppercase tracking-wide">📋 Diyetisyen Notları (Dahili)</p>
+      <p class="text-xs text-amber-800 whitespace-pre-wrap">${clientNotes}</p>
+    </div>` : ''}
+    <!-- İmza -->
+    <div class="border-t border-slate-200 pt-4 text-center text-[11px] text-slate-400">
+      Bu rapor Klinik Diyetisyen Asistan PWA ile oluşturulmuştur &nbsp;|&nbsp; Uzm. Dyt. Yunus Aksu
+    </div>
+  </div>`;
+}
+
+function downloadDietPDF() {
+  const msgEl = $('diet_pdf_msg');
+  if (msgEl) { msgEl.textContent = ''; msgEl.className='text-xs font-semibold min-h-[18px] no-print px-1'; }
+
+  // Önce raporu oluştur
+  generateReport();
+
+  // Basit print-to-PDF
+  const rptEl = $('rpt');
+  if (!rptEl || rptEl.children.length === 0) {
+    if (msgEl) { msgEl.textContent = '⚠️ Önce "Raporu Oluştur" butonuna tıklayın.'; msgEl.className += ' text-amber-600'; }
+    return;
+  }
+
+  if (msgEl) { msgEl.textContent = '🖨️ Yazdır/PDF penceresi açılıyor... "PDF olarak kaydet" seçeneğini seçin.'; msgEl.className += ' text-indigo-600'; }
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => { if (msgEl) msgEl.textContent = ''; }, 4000);
+  }, 300);
+}
+
+/* ════════════════════════════════════════════════════
+   GOOGLE FORM ENTEGRASYONU
+════════════════════════════════════════════════════ */
 async function fetchGoogleForm() {
   const url = ($('gform_script_url')||{}).value || '';
   if (!url) { showGFormStatus('error','Apps Script URL girilmedi.'); return; }
