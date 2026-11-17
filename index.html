@@ -2839,16 +2839,24 @@ function fillFromGForm(data) {
     return null;
   }
 
+  // Büyük/küçük harf bağımsız arama için lowercase harita
+  const exactMapLC = {};
+  Object.keys(exactMap).forEach(k => { exactMapLC[k.toLowerCase()] = exactMap[k]; });
+
   let filled = 0;
   const skipped = [];
+  const unmatched = []; // gerçekten eşleşmeyen sütunlar (debug)
 
   Object.keys(data).forEach(key => {
     const val = String(data[key] || '').trim();
     if (!val) return;
 
-    const target = exactMap.hasOwnProperty(key) ? exactMap[key] : fuzzyTarget(key);
+    // 1) Tam eşleşme (case-insensitive)
+    const keyLC = key.toLowerCase();
+    const target = exactMapLC.hasOwnProperty(keyLC) ? exactMapLC[keyLC] : fuzzyTarget(key);
 
-    if (target === '__skip__' || target === null) { skipped.push(key); return; }
+    if (target === '__skip__') { skipped.push(key); return; }
+    if (target === null) { skipped.push(key); unmatched.push(key); return; }
 
     // Cinsiyet
     if (target === '__cinsiyet__') {
@@ -3029,23 +3037,19 @@ function fillFromGForm(data) {
   const wtEl2  = $('cnt_weight'); if (!wtEl2  || !wtEl2.value)  unfilled.push('ağırlık');
 
   let statusMsg = `✔ ${filled} alan dolduruldu`;
-  if (skipped.length) {
-    // Kritik başlıkları bul (dob & weight kontrolü için)
-    const dobKeys   = skipped.filter(k => k.toLowerCase().includes('doğum') || k.toLowerCase().includes('birth'));
-    const wtKeys    = skipped.filter(k => k.toLowerCase().includes('ağırlık') || k.toLowerCase().includes('kilo') || k.toLowerCase().includes('weight'));
-    const warnKeys  = [...new Set([...dobKeys, ...wtKeys])];
-    if (warnKeys.length) {
-      statusMsg += ` — ⚠️ Eşleşmeyen başlıklar: "${warnKeys.join('", "')}"`;
-      showGFormStatus('warn', statusMsg);
-    } else {
-      showGFormStatus('success', statusMsg);
-    }
-    console.log('[GForm] Atlanan sütunlar:', skipped);
+  if (unmatched.length) {
+    statusMsg += ` — ⚠️ Eşleşmeyen ${unmatched.length} sütun (konsola bak)`;
+    showGFormStatus('warn', statusMsg);
+    console.warn('[GForm] ❌ Eşleşmeyen sütunlar:', unmatched);
   } else {
     showGFormStatus('success', statusMsg);
   }
-  console.log('[GForm] Tüm sütunlar ve hedefler:', Object.fromEntries(
-    Object.keys(data).map(k => [k, exactMap.hasOwnProperty(k) ? exactMap[k] : (fuzzyTarget(k) || '—EŞLEŞME YOK—')])
+  console.log('[GForm] Tüm sütun→hedef:', Object.fromEntries(
+    Object.keys(data).map(k => {
+      const kl = k.toLowerCase();
+      const t = exactMapLC.hasOwnProperty(kl) ? exactMapLC[kl] : (fuzzyTarget(k) || '—YOK—');
+      return [k, t];
+    })
   ));
   calcBMI(); calcEnergy(); updateBadge();
 }
