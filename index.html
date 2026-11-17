@@ -2596,6 +2596,10 @@ function fillFromGForm(data) {
     'Hedef Kilonuz(kg)':        'cnt_goal_wt',
     'Hedef vücut ağırlığınız (kg)': 'cnt_goal_wt',
     'Hedef Ağırlığınız (kg)':   'cnt_goal_wt',
+    'Ulaşmak istediğiniz bir kilo var mı? Varsa kaç': 'cnt_goal_wt',
+    'Ulaşmak istediğiniz bir kilo var mı? Varsa kaç (kg)': 'cnt_goal_wt',
+    'Ulaşmak istediğiniz kilo (kg)': 'cnt_goal_wt',
+    'Ulaşmak istediğiniz kilo':  'cnt_goal_wt',
     // Medeni durum
     'Medeni durumunuz':         '__civil__',
     'Medeni Durumunuz':         '__civil__',
@@ -2709,6 +2713,12 @@ function fillFromGForm(data) {
     'Eklemek istediğiniz bir şey var mı?':  '__supp_note__',
     'Eklemek istediğiniz':                  '__supp_note__',
     // Atlanacaklar — form yapısı gereği kullanılmayan sorular
+    'Öğrenim durumunuz':                  '__skip__',
+    'Öğrenim Durumunuz':                  '__skip__',
+    'Evde yemeklerde en çok hangi yağı kullanıyorsunuz?': '__skip__',
+    'En çok kullandığınız yağ türü nedir?': '__skip__',
+    'Genellikle kaçta uyarınız, kaçta uyursunuz?': '__skip__',
+    'Genellikle kaçta uyarınır, kaçta uyursunuz?': '__skip__',
     'Çalışma düzeniniz':                  '__skip__',
     'Şu anda gebe misiniz veya emziriyor musunuz?': '__skip__',
     'Regl döngünüz nasıl?':               '__skip__',
@@ -2785,6 +2795,13 @@ function fillFromGForm(data) {
     if (k.includes('çalışma düzen') || k.includes('uyku') || k.includes('stres düzey') ||
         k.includes('gebe misiniz') || k.includes('emziriyor') || k.includes('regl'))
       return '__skip__';
+    if (k.includes('öğrenim') || k.includes('eğitim durumu') || k.includes('mezun'))
+      return '__skip__';
+    if ((k.includes('yağ') && (k.includes('kullanıyor') || k.includes('kullandığınız'))) ||
+        k.includes('hangi yağ'))
+      return '__skip__';
+    if (k.includes('kaçta uyar') || k.includes('kaçta uyu'))
+      return '__skip__';
     // Görüşme tercihi
     if (k.includes('görüşmeyi nasıl') || k.includes('nasıl yapmak ister'))
       return '__skip__';
@@ -2802,6 +2819,10 @@ function fillFromGForm(data) {
       return 'cnt_neck';
     // Hedef kilo (önce kontrol et)
     if (k.includes('hedef') && (k.includes('kilo') || k.includes('ağırlık')))
+      return 'cnt_goal_wt';
+    if (k.includes('ulaşmak') && k.includes('kilo'))
+      return 'cnt_goal_wt';
+    if (k.includes('istediğiniz') && k.includes('kilo'))
       return 'cnt_goal_wt';
     // Kilo değişimi / trendi (önce kontrol et — "kilo" içerir ama weight'e gitmiyor)
     if ((k.includes('kilo') || k.includes('ağırlık')) && (k.includes('değişim') || k.includes('aldınız') || k.includes('alma eğilim') || k.includes('trend')))
@@ -2826,6 +2847,13 @@ function fillFromGForm(data) {
       return 'cnt_meds';
     // Takviye
     if (k.includes('takviye') || k.includes('vitamin') || k.includes('mineral'))
+      return '__supp_note__';
+    // 24 saatlik besin hatırlatması
+    if (k.includes('dün sabahtan') || k.includes('yatana kadar yedikler') ||
+        (k.includes('yediğiniz') && k.includes('içtiğiniz') && k.includes('saat')))
+      return '__supp_note__';
+    // Sık yenen yemekler
+    if ((k.includes('sık') || k.includes('genellikle')) && k.includes('yediğiniz yemek'))
       return '__supp_note__';
     // Aile geçmişi
     if (k.includes('aile') && (k.includes('hastalık') || k.includes('geçmiş') || k.includes('genetik')))
@@ -2930,7 +2958,7 @@ function fillFromGForm(data) {
 
   // Büyük/küçük harf bağımsız arama için lowercase harita
   const exactMapLC = {};
-  Object.keys(exactMap).forEach(k => { exactMapLC[k.toLowerCase()] = exactMap[k]; });
+  Object.keys(exactMap).forEach(k => { exactMapLC[k.toLowerCase().trim()] = exactMap[k]; });
 
   let filled = 0;
   const skipped = [];
@@ -2941,8 +2969,8 @@ function fillFromGForm(data) {
     if (!val) return;
 
     // 1) Tam eşleşme (case-insensitive)
-    const keyLC = key.toLowerCase();
-    const target = exactMapLC.hasOwnProperty(keyLC) ? exactMapLC[keyLC] : fuzzyTarget(key);
+    const keyLC = key.toLowerCase().trim();
+    const target = exactMapLC.hasOwnProperty(keyLC) ? exactMapLC[keyLC] : fuzzyTarget(key.trim());
 
     if (target === '__skip__') { skipped.push(key); return; }
     if (target === null) { skipped.push(key); unmatched.push(key); return; }
