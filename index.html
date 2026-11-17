@@ -2879,7 +2879,8 @@ function fillFromGForm(data) {
     // Sevmediği / yemediği
     if (k.includes('sevmediğin') || k.includes('yemediğin') || k.includes('yemezsiniz') ||
         k.includes('yiyemediğin') || k.includes('neleri hiç') || k.includes('sevmediğiniz') ||
-        k.includes('yemediğiniz'))
+        k.includes('yemediğiniz') || k.includes('sevmedi') ||
+        (k.includes('yiyecekler') && (k.includes('nelerdir') || k.includes('sevmedi') || k.includes('sever misiniz'))))
       return 'cnt_dislikes';
     // Beslenme şekli/tipi
     if (k.includes('beslenme') && (k.includes('şekl') || k.includes('tür') || k.includes('nasıl') || k.includes('biçim') || k.includes('tarz')))
