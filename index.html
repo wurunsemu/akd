@@ -2565,6 +2565,9 @@ function fillFromGForm(data) {
     'Doğum tarihi':             'cnt_dob',
     'Doğum tarihiniz':          'cnt_dob',
     'Doğum Tarihiniz':          'cnt_dob',
+    'Doğum tarihiniz nedir?':   'cnt_dob',
+    'Doğum tarihi (gün/ay/yıl)': 'cnt_dob',
+    'Doğum tarihi (gg/aa/yyyy)': 'cnt_dob',
     // Cinsiyet
     'Cinsiyet':                 '__cinsiyet__',
     'Cinsiyetiniz':             '__cinsiyet__',
@@ -2572,18 +2575,27 @@ function fillFromGForm(data) {
     'Boy (cm)':                 'cnt_height',
     'Boyunuz (cm)':             'cnt_height',
     'Boyunuz(cm)':              'cnt_height',
-    // Mevcut kilo
+    // Mevcut kilo / vücut ağırlığı
     'Kilo (kg)':                'cnt_weight',
     'Şu anki kilonuz (kg)':     'cnt_weight',
     'Şu anki kilonuz(kg)':      'cnt_weight',
     'Şu anki Kilonuz (kg)':     'cnt_weight',
     'Mevcut kilonuz (kg)':      'cnt_weight',
     'Kilonuz (kg)':             'cnt_weight',
+    'Vücut ağırlığınız (kg)':   'cnt_weight',
+    'Vücut ağırlığınız(kg)':    'cnt_weight',
+    'Vücut ağırlığı (kg)':      'cnt_weight',
+    'Vücut Ağırlığınız (kg)':   'cnt_weight',
+    'Vücut Ağırlığı (kg)':      'cnt_weight',
+    'Ağırlığınız (kg)':         'cnt_weight',
+    'Ağırlık (kg)':             'cnt_weight',
     // Hedef kilo
     'Hedef kilonuz (kg)':       'cnt_goal_wt',
     'Hedef Kilonuz (kg)':       'cnt_goal_wt',
     'Hedef kilo (kg)':          'cnt_goal_wt',
     'Hedef Kilonuz(kg)':        'cnt_goal_wt',
+    'Hedef vücut ağırlığınız (kg)': 'cnt_goal_wt',
+    'Hedef Ağırlığınız (kg)':   'cnt_goal_wt',
     // Medeni durum
     'Medeni durumunuz':         '__civil__',
     'Medeni Durumunuz':         '__civil__',
@@ -2664,6 +2676,22 @@ function fillFromGForm(data) {
     'Beslenme hedefiniz nedir?': 'cnt_goal',
     'Hedefiniz':                'cnt_goal',
     'Beklentiniz':              'cnt_goal',
+    // Tanı / hastalık geçmişi (checkbox sorusu)
+    'Tanılarınız':                        '__diagnosis__',
+    'Tanı / Hastalık Geçmişi':            '__diagnosis__',
+    'Hastalık geçmişiniz':                '__diagnosis__',
+    'Kronik hastalıklarınız':             '__diagnosis__',
+    'Mevcut hastalıklarınız':             '__diagnosis__',
+    'Kronik hastalıklar':                 '__diagnosis__',
+    'Tanı/Hastalık':                      '__diagnosis__',
+    'Altta yatan hastalıklarınız':        '__diagnosis__',
+    // Kilo değişimi / trendi
+    'Son 1 yılda kilo değişiminiz':       '__wt_change__',
+    'Kilo değişimi':                      '__wt_change__',
+    'Son dönemde kilo aldınız mı?':       '__wt_change__',
+    'Kilo alma eğiliminiz':               '__wt_change__',
+    'Son 6 ayda kilo değişiminiz':        '__wt_change__',
+    'Son 1 yıldaki kilo değişiminiz':     '__wt_change__',
   };
 
   // ── Anahtar kelime ile fuzzy eşleşme ──
@@ -2685,11 +2713,20 @@ function fillFromGForm(data) {
     if ((k.includes('boy') || k.includes('uzunluk')) && !k.includes('kilo') && !k.includes('hedef'))
       return 'cnt_height';
     // Hedef kilo (önce kontrol et)
-    if (k.includes('hedef') && k.includes('kilo'))
+    if (k.includes('hedef') && (k.includes('kilo') || k.includes('ağırlık')))
       return 'cnt_goal_wt';
-    // Mevcut kilo
+    // Kilo değişimi / trendi (önce kontrol et — "kilo" içerir ama weight'e gitmiyor)
+    if ((k.includes('kilo') || k.includes('ağırlık')) && (k.includes('değişim') || k.includes('aldınız') || k.includes('alma eğilim') || k.includes('trend')))
+      return '__wt_change__';
+    // Mevcut kilo / vücut ağırlığı
     if (k.includes('kilo') && !k.includes('hedef'))
       return 'cnt_weight';
+    if ((k.includes('ağırlık') || k.includes('vücut ağırlık')) && !k.includes('hedef'))
+      return 'cnt_weight';
+    // Tanı / hastalık geçmişi (checkbox sorusu)
+    if (k.includes('tanı') || (k.includes('kronik') && k.includes('hastalık')) ||
+        (k.includes('hastalık') && (k.includes('geçmiş') || k.includes('mevcut') || k.includes('altta yatan'))))
+      return '__diagnosis__';
     // Medeni durum
     if (k.includes('medeni'))
       return '__civil__';
@@ -2872,6 +2909,57 @@ function fillFromGForm(data) {
       filled++; return;
     }
 
+    // Tanı / Hastalık Geçmişi — checkbox doldurma
+    if (target === '__diagnosis__') {
+      const v = val.toLowerCase();
+      const dxMap = [
+        { keys: ['obezite','fazla kilo'],                      id: 'dx_obez'  },
+        { keys: ['tip 2','dm2','t2dm','diabetes mellitus tip 2','diyabet tip 2'], id: 'dx_dm2'   },
+        { keys: ['insülin direnci','insulin direnci'],          id: 'dx_ir'    },
+        { keys: ['hipertansiyon','htn','yüksek tansiyon'],      id: 'dx_ht'    },
+        { keys: ['dislipidemi','yüksek kolesterol'],            id: 'dx_dislip'},
+        { keys: ['pkos','polikistik'],                          id: 'dx_pkos'  },
+        { keys: ['hipotiroidi','hipo tiroidi'],                 id: 'dx_hipo'  },
+        { keys: ['hipertiroidi','hiper tiroidi'],                id: 'dx_hiper' },
+        { keys: ['anemi','demir eksikliği','demir eksikligi'],  id: 'dx_anemi' },
+        { keys: ['osteoporoz','osteopeni'],                     id: 'dx_osteo' },
+        { keys: ['ibs','gi sorun','irritabl bağırsak'],         id: 'dx_ibs'   },
+        { keys: ['yeme bozukluğu','yeme bozuklugu'],            id: 'dx_ye'    },
+        { keys: ['tip 1','dm1','t1dm','diyabet tip 1'],         id: 'dx_dm1'   },
+        { keys: ['çölyak','colyak','glutensiz','glüten'],       id: 'dx_celiac'},
+      ];
+      const others = [];
+      val.split(',').map(s => s.trim()).filter(Boolean).forEach(item => {
+        const iv = item.toLowerCase();
+        const matched = dxMap.find(({ keys }) => keys.some(k2 => iv.includes(k2)));
+        if (matched) {
+          const el = $(matched.id);
+          if (el && !el.checked) { el.checked = true; filled++; }
+        } else {
+          others.push(item);
+        }
+      });
+      if (others.length) {
+        const otherEl = $('dx_other');
+        if (otherEl) {
+          const existing = otherEl.value.trim();
+          otherEl.value = existing ? existing + ', ' + others.join(', ') : others.join(', ');
+        }
+      }
+      return;
+    }
+
+    // Kilo değişimi → şikayet alanına ekle
+    if (target === '__wt_change__') {
+      const el = $('cnt_complaint');
+      if (el) {
+        const existing = el.value.trim();
+        el.value = existing ? existing + (el.tagName === 'TEXTAREA' ? '\n' : ', ') + val : val;
+        filled++;
+      }
+      return;
+    }
+
     // Takviye bilgisi → klinik notlara ekle
     if (target === '__supp_note__') {
       const el = $('cnt_notes');
@@ -2896,7 +2984,8 @@ function fillFromGForm(data) {
     // Metin alanları: birden fazla kaynak için birleştir
     if (['cnt_goal','cnt_complaint','cnt_dislikes','cnt_allergy','cnt_gi','cnt_meds','cnt_family'].includes(target)) {
       const existing = el.value.trim();
-      el.value = existing ? existing + '\n' + val : val;
+      const sep = el.tagName === 'TEXTAREA' ? '\n' : ', ';
+      el.value = existing ? existing + sep + val : val;
       filled++;
     } else {
       el.value = val;
