@@ -98,7 +98,7 @@
     <div class="flex gap-2">
       <input id="gform_script_url" type="text" class="input flex-1 text-xs"
         placeholder="Apps Script URL (exec linki)"
-        value="https://script.google.com/macros/s/AKfycbw_caL7JFgCDDwC1KpBzQB7h3ilT3WJyKg26CoK-ohgbSO8GuL997GP0UlA1RwC9Wxw/exec">
+        value="https://script.google.com/macros/s/AKfycbzqZ9lgzGGC1o4f9lfTouqYoEPkVVeMpiNXWbKRZpDChsxZu5o-cTM_bqKxLcG9Pjx9/exec">
       <button onclick="fetchGoogleForm()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition flex items-center gap-1.5 whitespace-nowrap">
         <i class="fa-solid fa-cloud-arrow-down"></i> Çek
       </button>
@@ -109,7 +109,7 @@
     <!-- Form linki QR -->
     <details class="text-xs text-indigo-600">
       <summary class="cursor-pointer font-semibold">📋 Form linki</summary>
-      <div class="mt-2 p-2 bg-white rounded-xl border border-indigo-100 break-all select-all text-slate-600">https://forms.gle/WTwsAp97r9csjWpz8</div>
+      <div class="mt-2 p-2 bg-white rounded-xl border border-indigo-100 break-all select-all text-slate-600">https://docs.google.com/forms/d/1cS-iSYWqCtMKGwQvGoCFQI18NkcolUVJcl83dHAvb2s/viewform</div>
     </details>
   </div>
 
@@ -2534,55 +2534,234 @@ function selectGFormRow(idx) {
 }
 
 function fillFromGForm(data) {
-  // ── Kesin eşleşmeler ──
+  // ── Kesin eşleşmeler (62 soruluk yeni form) ──
   const exactMap = {
+    // Zaman & atlanacaklar
+    'Zaman Damgası':            '__skip__',
+    'Timestamp':                '__skip__',
+    'Email':                    '__skip__',
+    'E-posta Adresi':           '__skip__',
+    'E-posta adresiniz':        '__skip__',
+    'E-posta Adresiniz':        '__skip__',
+    'Eğitim durumunuz':         '__skip__',
+    'Eğitim Durumunuz':         '__skip__',
+    // Ad Soyad
     'Ad ve Soyad':              'cnt_name',
     'Adı Soyadı':               'cnt_name',
     'Ad Soyad':                 'cnt_name',
     'İsim Soyisim':             'cnt_name',
+    'Adınız Soyadınız':         'cnt_name',
+    'Adınız ve soyadınız':      'cnt_name',
+    'Adınız soyadınız':         'cnt_name',
+    // Telefon
     'Telefon Numarası':         'cnt_phone',
     'Telefon':                  'cnt_phone',
-    'Meslek ve Öğrenim Durumu': 'cnt_job',
-    'Meslek':                   'cnt_job',
+    'Telefon numaranız':        'cnt_phone',
+    'Telefon Numaranız':        'cnt_phone',
+    // Doğum tarihi
     'Doğum Tarihi':             'cnt_dob',
     'Doğum tarihi':             'cnt_dob',
-    'Email':                    '__skip__',
-    'E-posta Adresi':           '__skip__',
-    'Zaman Damgası':            '__skip__',
-    'Timestamp':                '__skip__',
+    'Doğum tarihiniz':          'cnt_dob',
+    'Doğum Tarihiniz':          'cnt_dob',
+    // Cinsiyet
     'Cinsiyet':                 '__cinsiyet__',
+    'Cinsiyetiniz':             '__cinsiyet__',
+    // Boy
+    'Boy (cm)':                 'cnt_height',
+    'Boyunuz (cm)':             'cnt_height',
+    'Boyunuz(cm)':              'cnt_height',
+    // Mevcut kilo
+    'Kilo (kg)':                'cnt_weight',
+    'Şu anki kilonuz (kg)':     'cnt_weight',
+    'Şu anki kilonuz(kg)':      'cnt_weight',
+    'Şu anki Kilonuz (kg)':     'cnt_weight',
+    'Mevcut kilonuz (kg)':      'cnt_weight',
+    'Kilonuz (kg)':             'cnt_weight',
+    // Hedef kilo
+    'Hedef kilonuz (kg)':       'cnt_goal_wt',
+    'Hedef Kilonuz (kg)':       'cnt_goal_wt',
+    'Hedef kilo (kg)':          'cnt_goal_wt',
+    'Hedef Kilonuz(kg)':        'cnt_goal_wt',
+    // Medeni durum
+    'Medeni durumunuz':         '__civil__',
+    'Medeni Durumunuz':         '__civil__',
+    'Medeni durum':             '__civil__',
+    // Meslek
+    'Meslek ve Öğrenim Durumu': 'cnt_job',
+    'Meslek':                   'cnt_job',
+    'Mesleğiniz':               'cnt_job',
+    'Mesleğiniz ve çalışma durumunuz': 'cnt_job',
+    // Referans
+    'Referans':                 'cnt_ref',
+    'Referans (sizi bize kim yönlendirdi?)': 'cnt_ref',
+    'Sizi bize kim yönlendirdi?': 'cnt_ref',
+    'Bizi nasıl duydunuz?':     'cnt_ref',
+    'Bizi nasıl buldunuz?':     'cnt_ref',
+    // İlaçlar
+    'Düzenli kullandığınız ilaçlar': 'cnt_meds',
+    'Düzenli kullandığınız ilaçlar (varsa)': 'cnt_meds',
+    'Kullandığınız ilaçlar':    'cnt_meds',
+    'Kullandığınız ilaçlar (varsa)': 'cnt_meds',
+    // Takviyeler → klinik notlara ekle
+    'Kullandığınız takviyeler (vitamin, mineral vb.)': '__supp_note__',
+    'Kullandığınız takviyeler': '__supp_note__',
+    'Takviyeler':               '__supp_note__',
+    // Aile geçmişi
+    'Ailede hastalık geçmişi var mı?': 'cnt_family',
+    'Ailenizde hastalık geçmişi var mı?': 'cnt_family',
+    'Aile geçmişinde hastalık': 'cnt_family',
+    'Ailede hastalık geçmişi':  'cnt_family',
+    // Sigara
+    'Sigara kullanıyor musunuz?': '__smoke__',
+    'Sigara':                   '__smoke__',
+    'Sigara kullanımı':         '__smoke__',
+    // Alkol
+    'Alkol tüketiyor musunuz?': '__alcohol__',
+    'Alkol kullanıyor musunuz?': '__alcohol__',
+    'Alkol':                    '__alcohol__',
+    // Su
+    'Günlük su tüketiminiz':    'cnt_water',
+    'Günde ne kadar su içiyorsunuz?': 'cnt_water',
+    'Su tüketimi':              'cnt_water',
+    // Öğün sayısı
+    'Günde kaç öğün yiyorsunuz?': '__meals__',
+    'Günlük öğün sayınız':      '__meals__',
+    'Öğün sayısı':              '__meals__',
+    // Öğün atlama
+    'Öğün atlıyor musunuz?':    'cnt_skip',
+    'Atlanan öğün':             'cnt_skip',
+    'Öğün atlama':              'cnt_skip',
+    // Alerji
+    'Besin alerjisi veya intoleransınız var mı?': 'cnt_allergy',
+    'Alerji / İntolerans':      'cnt_allergy',
+    'Alerji/İntolerans':        'cnt_allergy',
+    'Alerji/intolerans':        'cnt_allergy',
+    // Sevmediği besinler
+    'Sevmediğiniz veya yemediğiniz besinler': 'cnt_dislikes',
+    'Sevmediğiniz besinler':    'cnt_dislikes',
+    // Beslenme şekli
+    'Beslenme şekliniz':        '__diet_type__',
+    'Beslenme şekli':           '__diet_type__',
+    // GI şikayetler
+    'Sindirim sistemi şikayetleriniz var mı?': 'cnt_gi',
+    'GI şikayetler':            'cnt_gi',
+    'Sindirim şikayetleri':     'cnt_gi',
+    // Egzersiz
+    'Egzersiz türü ve süresi':  'cnt_ex_type',
+    'Egzersiz türü':            'cnt_ex_type',
+    'Haftalık egzersiz süresi': 'cnt_ex_dur',
+    // Adım sayısı
+    'Günlük adım sayısı':       'cnt_steps',
+    'Adım sayısı':              'cnt_steps',
+    // Başvuru nedeni
+    'Neden beslenme danışmanlığı almak istiyorsunuz?': 'cnt_complaint',
+    'Beslenme danışmanlığına başvurma nedeniniz':      'cnt_complaint',
+    'Neden başvuruyorsunuz?':   'cnt_complaint',
+    'Başvuru nedeniniz':        'cnt_complaint',
+    // Hedef / beklenti
+    'Beslenme hedefiniz nedir?': 'cnt_goal',
+    'Hedefiniz':                'cnt_goal',
+    'Beklentiniz':              'cnt_goal',
   };
 
   // ── Anahtar kelime ile fuzzy eşleşme ──
   function fuzzyTarget(key) {
     const k = key.toLowerCase();
-    // Yemem / dislikes
-    if (k.includes('yemezsiniz') || k.includes('yemiyorum') || k.includes('sevmediğin') ||
-        k.includes('yemediğin') || k.includes('yiyemediğin') || k.includes('neleri hiç'))
-      return 'cnt_dislikes';
-    // Alerji
+    // Atlanacaklar
+    if (k.includes('kvkk') || k.includes('aydınlatma') || k.includes('onam') ||
+        k.includes('gizlilik') || k.includes('rıza'))
+      return '__skip__';
+    if (k.includes('görüşme') && (k.includes('tercih') || k.includes('yüz') || k.includes('online')))
+      return '__skip__';
+    if (k.includes('uygun') && (k.includes('gün') || k.includes('saat') || k.includes('zaman')))
+      return '__skip__';
+    if (k.includes('ek bilgi') || (k.includes('eklemek') && k.includes('istedikler')))
+      return '__skip__';
+    if (k.includes('eğitim') && k.includes('durum'))
+      return '__skip__';
+    // Boy (hedef kilo içermeyen)
+    if ((k.includes('boy') || k.includes('uzunluk')) && !k.includes('kilo') && !k.includes('hedef'))
+      return 'cnt_height';
+    // Hedef kilo (önce kontrol et)
+    if (k.includes('hedef') && k.includes('kilo'))
+      return 'cnt_goal_wt';
+    // Mevcut kilo
+    if (k.includes('kilo') && !k.includes('hedef'))
+      return 'cnt_weight';
+    // Medeni durum
+    if (k.includes('medeni'))
+      return '__civil__';
+    // Referans
+    if (k.includes('referans') || k.includes('yönlendirdi') || k.includes('duydunuz') || k.includes('buldunuz'))
+      return 'cnt_ref';
+    // İlaç
+    if (k.includes('ilaç'))
+      return 'cnt_meds';
+    // Takviye
+    if (k.includes('takviye') || k.includes('vitamin') || k.includes('mineral'))
+      return '__supp_note__';
+    // Aile geçmişi
+    if (k.includes('aile') && (k.includes('hastalık') || k.includes('geçmiş') || k.includes('genetik')))
+      return 'cnt_family';
+    // Sigara
+    if (k.includes('sigara'))
+      return '__smoke__';
+    // Alkol
+    if (k.includes('alkol'))
+      return '__alcohol__';
+    // Su tüketimi
+    if (k.includes('su') && (k.includes('tüket') || k.includes('içi') || k.includes('günl')))
+      return 'cnt_water';
+    // Öğün sayısı
+    if (k.includes('öğün') && (k.includes('kaç') || k.includes('sayı') || k.includes('sayınız')))
+      return '__meals__';
+    // Öğün atlama
+    if (k.includes('öğün') && (k.includes('atl') || k.includes('geç')))
+      return 'cnt_skip';
+    // Alerji / intolerans
     if (k.includes('alerji') || k.includes('intolerans') || k.includes('tolere edem'))
       return 'cnt_allergy';
-    // Başvuru / hedef
-    if (k.includes('neden') && (k.includes('beslenme') || k.includes('başvur') || k.includes('ihtiyaç') || k.includes('programına')))
-      return 'cnt_goal';
-    if (k.includes('hedef') || k.includes('amaç'))
-      return 'cnt_goal';
-    // Şikayet / hastalık geçmişi
-    if (k.includes('şikayet') || k.includes('yakınma') || k.includes('rahatsızlık'))
+    // Sevmediği / yemediği
+    if (k.includes('sevmediğin') || k.includes('yemediğin') || k.includes('yemezsiniz') ||
+        k.includes('yiyemediğin') || k.includes('neleri hiç') || k.includes('sevmediğiniz') ||
+        k.includes('yemediğiniz'))
+      return 'cnt_dislikes';
+    // Beslenme şekli/tipi
+    if (k.includes('beslenme') && (k.includes('şekl') || k.includes('tür') || k.includes('nasıl') || k.includes('biçim')))
+      return '__diet_type__';
+    // GI / sindirim
+    if (k.includes('sindirim') || k.includes('bağırsak') || k.includes('reflü') ||
+        k.includes('şişkinlik') || k.includes('kabızlık') || k.includes('gaz'))
+      return 'cnt_gi';
+    // Egzersiz türü
+    if (k.includes('egzersiz') && (k.includes('tür') || k.includes('çeşit') || k.includes('ne tür') || k.includes('ne yapıy')))
+      return 'cnt_ex_type';
+    // Egzersiz süresi
+    if (k.includes('egzersiz') && (k.includes('süre') || k.includes('haftalık') || k.includes('dakika') || k.includes('sık')))
+      return 'cnt_ex_dur';
+    // Adım sayısı
+    if (k.includes('adım'))
+      return 'cnt_steps';
+    // Başvuru nedeni / şikayet
+    if ((k.includes('neden') && (k.includes('beslenme') || k.includes('başvur') || k.includes('programına') || k.includes('danışmanl'))) ||
+        k.includes('şikayet') || k.includes('yakınma'))
       return 'cnt_complaint';
-    if (k.includes('hastalık') || k.includes('ameliyat') || k.includes('ilaç') || k.includes('takviye'))
+    // Hedef / amaç / beklenti
+    if (k.includes('hedef') || k.includes('amaç') || k.includes('beklenti'))
+      return 'cnt_goal';
+    // Hastalık / ameliyat / kronik
+    if (k.includes('hastalık') || k.includes('ameliyat') || k.includes('kronik'))
       return 'cnt_complaint';
-    // Daha önce diyet
+    // Önceki diyet
     if (k.includes('daha önce') && k.includes('diyet'))
       return 'cnt_complaint';
     // Doğum tarihi
     if (k.includes('doğum') || k.includes('dogum') || k.includes('birth'))
       return 'cnt_dob';
-    // Meslek fallback
-    if (k.includes('meslek') || k.includes('öğrenim') || k.includes('eğitim durumu'))
+    // Meslek
+    if (k.includes('meslek') || (k.includes('çalış') && k.includes('durum')))
       return 'cnt_job';
-    // Boy & kilo (aynı alanda olabilir)
+    // Boy & Kilo aynı alanda
     if (k.includes('boy') && k.includes('kilo'))
       return '__boykilo__';
     return null;
@@ -2590,16 +2769,12 @@ function fillFromGForm(data) {
 
   // ── Tarih ayrıştır: dd/MM/yyyy [HH:mm] → YYYY-MM-DD ──
   function parseDateVal(val) {
-    const datePart = val.split(' ')[0]; // HH:mm varsa at
-    // / . - ayracını otomatik seç
+    const datePart = val.split(' ')[0];
     const sep = datePart.includes('/') ? '/' : datePart.includes('.') ? '.' : '-';
     const parts = datePart.split(sep);
     if (parts.length !== 3) return null;
     let dd, mm, yyyy;
-    // Yıl her zaman 4 haneli; hangi pozisyonda olduğuna bak
     if (parts[2].length === 4) {
-      // dd/MM/yyyy veya MM/dd/yyyy
-      // Apps Script dd/MM/yyyy gönderir
       [dd, mm, yyyy] = parts;
     } else if (parts[0].length === 4) {
       [yyyy, mm, dd] = parts;
@@ -2620,7 +2795,7 @@ function fillFromGForm(data) {
     if (target === '__skip__' || target === null) { skipped.push(key); return; }
 
     // Cinsiyet
-    if (target === '__cinsiyet__' || key.toLowerCase().includes('cinsiyet')) {
+    if (target === '__cinsiyet__') {
       const el = $('cnt_sex'); if (!el) return;
       el.value = val.toLowerCase().includes('erkek') ? 'E' : 'K';
       filled++; return;
@@ -2639,6 +2814,73 @@ function fillFromGForm(data) {
       return;
     }
 
+    // Medeni durum
+    if (target === '__civil__') {
+      const el = $('cnt_civil'); if (!el) return;
+      const v = val.toLowerCase();
+      if (v.includes('evli')) el.value = 'Evli';
+      else if (v.includes('boşan') || v.includes('bosan')) el.value = 'Boşanmış';
+      else if (v.includes('bekar') || v.includes('bekâr')) el.value = 'Bekar';
+      else el.value = val;
+      filled++; return;
+    }
+
+    // Öğün sayısı
+    if (target === '__meals__') {
+      const el = $('cnt_meals'); if (!el) return;
+      const nums = val.match(/\d+/);
+      if (nums) { const n = Math.min(6, Math.max(1, parseInt(nums[0]))); el.value = String(n); filled++; }
+      return;
+    }
+
+    // Sigara
+    if (target === '__smoke__') {
+      const el = $('cnt_smoke'); if (!el) return;
+      const v = val.toLowerCase();
+      if (v.includes('hayır') || v.includes('kullanm') || v.includes('içm')) el.value = 'Kullanmıyor';
+      else if (v.includes('bırak')) el.value = 'Bıraktı';
+      else if (v.includes('evet') || v.includes('kullan') || v.includes('içiyor')) el.value = 'Kullanıyor';
+      filled++; return;
+    }
+
+    // Alkol
+    if (target === '__alcohol__') {
+      const el = $('cnt_alcohol'); if (!el) return;
+      const v = val.toLowerCase();
+      if (v.includes('hayır') || v.includes('kullanm') || v.includes('içm') || v.includes('hiç')) el.value = 'Kullanmıyor';
+      else if (v.includes('nadir') || v.includes('ara') || v.includes('bazen')) el.value = 'Nadiren';
+      else if (v.includes('hafta') || v.includes('1-2') || v.includes('1–2')) el.value = 'Haftada 1–2';
+      else if (v.includes('düzenli') || v.includes('her gün') || v.includes('sık')) el.value = 'Düzenli';
+      filled++; return;
+    }
+
+    // Beslenme şekli
+    if (target === '__diet_type__') {
+      const el = $('cnt_diet_type'); if (!el) return;
+      const v = val.toLowerCase();
+      if (v.includes('vegan')) el.value = 'Vegan';
+      else if (v.includes('vejetaryen')) el.value = 'Vejetaryen';
+      else if (v.includes('pescatarian') || (v.includes('balık') && v.includes('et'))) el.value = 'Pescatarian';
+      else if (v.includes('glutensiz') || v.includes('çölyak')) el.value = 'Glutensiz';
+      else if (v.includes('laktosuz')) el.value = 'Laktosuz';
+      else if (v.includes('akdeniz')) el.value = 'Akdeniz';
+      else if (v.includes('keto')) el.value = 'Ketojenik';
+      else if (v.includes('düşük karbonhidrat') || v.includes('low carb')) el.value = 'Düşük Karbonhidrat';
+      else el.value = '';
+      filled++; return;
+    }
+
+    // Takviye bilgisi → klinik notlara ekle
+    if (target === '__supp_note__') {
+      const el = $('cnt_notes');
+      if (el) {
+        const existing = el.value.trim();
+        el.value = existing ? existing + '\nTakviye: ' + val : 'Takviye: ' + val;
+        filled++;
+      }
+      return;
+    }
+
     const el = $(target);
     if (!el) return;
 
@@ -2649,8 +2891,8 @@ function fillFromGForm(data) {
       return;
     }
 
-    // Metin alanları: birden fazla kaynak için birleştir (goal/complaint/dislikes)
-    if (['cnt_goal','cnt_complaint','cnt_dislikes','cnt_allergy'].includes(target)) {
+    // Metin alanları: birden fazla kaynak için birleştir
+    if (['cnt_goal','cnt_complaint','cnt_dislikes','cnt_allergy','cnt_gi','cnt_meds','cnt_family'].includes(target)) {
       const existing = el.value.trim();
       el.value = existing ? existing + '\n' + val : val;
       filled++;
