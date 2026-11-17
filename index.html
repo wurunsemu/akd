@@ -2806,20 +2806,37 @@ function fillFromGForm(data) {
     return null;
   }
 
-  // ── Tarih ayrıştır: dd/MM/yyyy [HH:mm] → YYYY-MM-DD ──
+  // ── Tarih ayrıştır → YYYY-MM-DD ──
+  // Desteklenen formatlar:
+  //   dd/MM/yyyy  |  dd.MM.yyyy  |  yyyy-MM-dd
+  //   "Sun Jan 10 1999 00:00:00 GMT+0200 (Türkiye Standart Saati)"  (Google Sheets JS Date string)
   function parseDateVal(val) {
+    // 1) Kısa sayısal format: dd/MM/yyyy, dd.MM.yyyy, yyyy-MM-dd
     const datePart = val.split(' ')[0];
     const sep = datePart.includes('/') ? '/' : datePart.includes('.') ? '.' : '-';
     const parts = datePart.split(sep);
-    if (parts.length !== 3) return null;
-    let dd, mm, yyyy;
-    if (parts[2].length === 4) {
-      [dd, mm, yyyy] = parts;
-    } else if (parts[0].length === 4) {
-      [yyyy, mm, dd] = parts;
-    } else return null;
-    const y = yyyy.padStart(4,'0'), m = mm.padStart(2,'0'), d = dd.padStart(2,'0');
-    return `${y}-${m}-${d}`;
+    if (parts.length === 3) {
+      let dd, mm, yyyy;
+      if (parts[2].length === 4) {
+        [dd, mm, yyyy] = parts;
+      } else if (parts[0].length === 4) {
+        [yyyy, mm, dd] = parts;
+      }
+      if (yyyy) {
+        const y = yyyy.padStart(4,'0'), m = mm.padStart(2,'0'), d = dd.padStart(2,'0');
+        const iso = `${y}-${m}-${d}`;
+        if (!isNaN(new Date(iso))) return iso;
+      }
+    }
+    // 2) Fallback: JS Date parse — "Sun Jan 10 1999 00:00:00 GMT+0200 ..." gibi uzun formatlar
+    const d = new Date(val);
+    if (!isNaN(d)) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    return null;
   }
 
   let filled = 0;
