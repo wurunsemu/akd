@@ -2977,7 +2977,13 @@ function fillFromGForm(data) {
     // Tarih alanı
     if (target === 'cnt_dob') {
       const iso = parseDateVal(val);
-      if (iso) { el.value = iso; filled++; }
+      if (iso) {
+        el.value = iso; filled++;
+      } else {
+        // Parse başarısız — ham değeri consola yaz, kullanıcıya göster
+        console.warn('[GForm] Doğum tarihi parse edilemedi, ham değer:', JSON.stringify(val));
+        showGFormStatus('warn', `Doğum tarihi formatı tanınamadı: "${val}" — beklenen: gg/aa/yyyy`);
+      }
       return;
     }
 
@@ -3000,7 +3006,30 @@ function fillFromGForm(data) {
     if (!isNaN(dob)) { const ageEl = $('cnt_age'); if(ageEl) ageEl.value = Math.floor((new Date()-dob)/(365.25*24*3600*1000)); }
   }
 
-  showGFormStatus('success', `✔ ${filled} alan dolduruldu`);
+  // Doldurulmayan kritik alanları kontrol et
+  const unfilled = [];
+  const dobEl2 = $('cnt_dob'); if (!dobEl2 || !dobEl2.value) unfilled.push('doğum tarihi');
+  const wtEl2  = $('cnt_weight'); if (!wtEl2  || !wtEl2.value)  unfilled.push('ağırlık');
+
+  let statusMsg = `✔ ${filled} alan dolduruldu`;
+  if (skipped.length) {
+    // Kritik başlıkları bul (dob & weight kontrolü için)
+    const dobKeys   = skipped.filter(k => k.toLowerCase().includes('doğum') || k.toLowerCase().includes('birth'));
+    const wtKeys    = skipped.filter(k => k.toLowerCase().includes('ağırlık') || k.toLowerCase().includes('kilo') || k.toLowerCase().includes('weight'));
+    const warnKeys  = [...new Set([...dobKeys, ...wtKeys])];
+    if (warnKeys.length) {
+      statusMsg += ` — ⚠️ Eşleşmeyen başlıklar: "${warnKeys.join('", "')}"`;
+      showGFormStatus('warn', statusMsg);
+    } else {
+      showGFormStatus('success', statusMsg);
+    }
+    console.log('[GForm] Atlanan sütunlar:', skipped);
+  } else {
+    showGFormStatus('success', statusMsg);
+  }
+  console.log('[GForm] Tüm sütunlar ve hedefler:', Object.fromEntries(
+    Object.keys(data).map(k => [k, exactMap.hasOwnProperty(k) ? exactMap[k] : (fuzzyTarget(k) || '—EŞLEŞME YOK—')])
+  ));
   calcBMI(); calcEnergy(); updateBadge();
 }
 
