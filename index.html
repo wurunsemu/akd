@@ -2769,6 +2769,10 @@ function fillFromGForm(data) {
     'Kilo alma eğiliminiz':               '__wt_change__',
     'Son 6 ayda kilo değişiminiz':        '__wt_change__',
     'Son 1 yıldaki kilo değişiminiz':     '__wt_change__',
+    'Son 6 ayda kilonuz nasıl değişti?':  '__wt_change__',
+    'Son 6 ayda kilonuz nasıl değişti':   '__wt_change__',
+    'Son bir yılda kilonuz nasıl değişti?': '__wt_change__',
+    'Kilonuz son 6 ayda nasıl değişti?':  '__wt_change__',
   };
 
   // ── Anahtar kelime ile fuzzy eşleşme ──
@@ -2825,7 +2829,10 @@ function fillFromGForm(data) {
     if (k.includes('istediğiniz') && k.includes('kilo'))
       return 'cnt_goal_wt';
     // Kilo değişimi / trendi (önce kontrol et — "kilo" içerir ama weight'e gitmiyor)
-    if ((k.includes('kilo') || k.includes('ağırlık')) && (k.includes('değişim') || k.includes('aldınız') || k.includes('alma eğilim') || k.includes('trend')))
+    if ((k.includes('kilo') || k.includes('ağırlık')) &&
+        (k.includes('değişim') || k.includes('değişti') || k.includes('nasıl değişti') ||
+         k.includes('aldınız') || k.includes('alma eğilim') || k.includes('trend') ||
+         (k.includes('son') && k.includes('ay') && k.includes('kilo'))))
       return '__wt_change__';
     // Mevcut kilo / vücut ağırlığı
     if (k.includes('kilo') && !k.includes('hedef'))
