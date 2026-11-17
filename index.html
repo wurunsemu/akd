@@ -2909,7 +2909,13 @@ function fillFromGForm(data) {
     if (!isNaN(dob)) { const ageEl = $('cnt_age'); if(ageEl) ageEl.value = Math.floor((new Date()-dob)/(365.25*24*3600*1000)); }
   }
 
-  showGFormStatus('success', `✔ ${filled} alan dolduruldu`);
+  if (filled === 0) {
+    // DEBUG: ilk 4 key'i göster
+    const keys = Object.keys(data).slice(0, 4).join(' | ');
+    showGFormStatus('warn', `⚠ 0 alan — gelen başlıklar: ${keys}`);
+  } else {
+    showGFormStatus('success', `✔ ${filled} alan dolduruldu`);
+  }
   calcBMI(); calcEnergy(); updateBadge();
 }
 
