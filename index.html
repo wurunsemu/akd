@@ -2676,6 +2676,73 @@ function fillFromGForm(data) {
     'Beslenme hedefiniz nedir?': 'cnt_goal',
     'Hedefiniz':                'cnt_goal',
     'Beklentiniz':              'cnt_goal',
+    // Bel / kalça / boyun
+    'Bel çevreniz (cm)':                  'cnt_waist',
+    'Bel çevreniz (cm), ölçebildiyseniz': 'cnt_waist',
+    'Bel çevresi (cm)':                   'cnt_waist',
+    'Bel (cm)':                           'cnt_waist',
+    'Kalça çevreniz (cm)':                'cnt_hip',
+    'Kalça (cm)':                         'cnt_hip',
+    'Boyun çevreniz (cm)':                'cnt_neck',
+    'Boyun (cm)':                         'cnt_neck',
+    // Egzersiz / fiziksel aktivite
+    'Düzenli yaptığınız bir spor veya fiziksel aktivite var mı?': 'cnt_ex_type',
+    'Spor yapıyor musunuz?':              'cnt_ex_type',
+    'Fiziksel aktivite türünüz':          'cnt_ex_type',
+    'Spor / Egzersiz':                    'cnt_ex_type',
+    'Yaptığınız spor':                    'cnt_ex_type',
+    // Su
+    'Günde ne kadar su içersiniz?':       'cnt_water',
+    'Günlük su tüketiminiz nedir?':       'cnt_water',
+    // Beslenme tarzı
+    'Beslenme tarzınız':                  '__diet_type__',
+    'Beslenme şekliniz nedir?':           '__diet_type__',
+    // Sevmediği / yemediği besinler
+    'En sevmediğiniz yiyecekler nelerdir?': 'cnt_dislikes',
+    'Kendinizi durdurmakta zorlandığınız bir yiyecek var mı?': 'cnt_dislikes',
+    'Yemekle ilgili kısıtlamalarınız':    'cnt_dislikes',
+    // Ek notlar / 24 saatlik hatırlatma → klinik notlara
+    'Dün sabahtan yatana kadar yediğiniz ve içtiğiniz her şeyi saat ve miktarıyla yazınız': '__supp_note__',
+    'Dün sabahtan yatana kadar yediğiniz ve içtiğiniz her şeyi saat ve miktarıyla belirtiniz': '__supp_note__',
+    'Dışarıda veya evde sık yediğiniz yemeklere örnek verir misiniz?': '__supp_note__',
+    'Eklemek istediğiniz başka bir şey var mı?': '__supp_note__',
+    'Eklemek istediğiniz bir şey var mı?':  '__supp_note__',
+    'Eklemek istediğiniz':                  '__supp_note__',
+    // Atlanacaklar — form yapısı gereği kullanılmayan sorular
+    'Çalışma düzeniniz':                  '__skip__',
+    'Şu anda gebe misiniz veya emziriyor musunuz?': '__skip__',
+    'Regl döngünüz nasıl?':               '__skip__',
+    'Son 6 ayda yaptırdığınız kan tahlili var mı?': '__skip__',
+    'Genellikle kaçta uyarınır, kaçta uyursunuz?': '__skip__',
+    'Uyku kalitenizi nasıl değerlendirsiniz?': '__skip__',
+    'Son bir ayda stres düzeyiniz nasıl?': '__skip__',
+    'Günde kaç bardak çay ve kaç fincan kahve içersiniz? Şeker veya süt ekler misiniz?': '__skip__',
+    'Kahvaltı, öğle ve akşam yemeğini genellikle kaçta yersiniz?': '__skip__',
+    'Ara öğün yapıyor musunuz?':          '__skip__',
+    'Programınızda ara öğün olmasını ister misiniz?': '__skip__',
+    'Öğünlerinizi genellikle nerede yersiniz? [Kahvaltı]': '__skip__',
+    'Öğünlerinizi genellikle nerede yersiniz? [Öğle]':    '__skip__',
+    'Öğünlerinizi genellikle nerede yersiniz? [Akşam]':   '__skip__',
+    'Evdeki yemekleri genellikle kim hazırlıyor?':        '__skip__',
+    'Dün sizin için tipik bir gün müydü?': '__skip__',
+    'Ne sıklıkla tuvalete çıkıyorsunuz (büyük abdest)?':  '__skip__',
+    'Duygularınız (stres, üzüntü, sıkıntı) yeme davranışınızı etkiliyor mu?': '__skip__',
+    'Görüşmeyi nasıl yapmak istersiniz?': '__skip__',
+    // Besin sıklığı soruları → atla
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Sebze (pişmiş veya çiğ)]': '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Meyve]':         '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Kırmızı et]':    '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Tavuk, hindi]':  '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Balık]':         '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Yumurta]':       '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Süt, yoğurt, kefir, ayran]': '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Peynir]':        '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Ekmek]':         '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Tahıl, makarna, pirinç]': '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Baklagiller]':   '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Kuruyemiş]':     '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Tatlı, şeker]':  '__skip__',
+    'Aşağıdaki besinleri ne sıklıkla tüketirsiniz? [Fast food]':     '__skip__',
     // Tanı / hastalık geçmişi (checkbox sorusu)
     'Tanılarınız':                        '__diagnosis__',
     'Tanı / Hastalık Geçmişi':            '__diagnosis__',
@@ -2707,11 +2774,32 @@ function fillFromGForm(data) {
       return '__skip__';
     if (k.includes('ek bilgi') || (k.includes('eklemek') && k.includes('istedikler')))
       return '__skip__';
+    // Besin sıklığı soruları
+    if (k.includes('ne sıklıkla tüketirsiniz') || k.includes('ne sıklıkla yiyorsunuz'))
+      return '__skip__';
+    // Öğün zamanı / yeri / hazırlık
+    if ((k.includes('kaçta') && (k.includes('yiyor') || k.includes('yers') || k.includes('yemek'))) ||
+        (k.includes('öğün') && k.includes('nerede')))
+      return '__skip__';
+    // Çalışma düzeni, uyku, stres → atla
+    if (k.includes('çalışma düzen') || k.includes('uyku') || k.includes('stres düzey') ||
+        k.includes('gebe misiniz') || k.includes('emziriyor') || k.includes('regl'))
+      return '__skip__';
+    // Görüşme tercihi
+    if (k.includes('görüşmeyi nasıl') || k.includes('nasıl yapmak ister'))
+      return '__skip__';
     if (k.includes('eğitim') && k.includes('durum'))
       return '__skip__';
     // Boy (hedef kilo içermeyen)
-    if ((k.includes('boy') || k.includes('uzunluk')) && !k.includes('kilo') && !k.includes('hedef'))
+    if ((k.includes('boy') || k.includes('uzunluk')) && !k.includes('kilo') && !k.includes('hedef') && !k.includes('boyun'))
       return 'cnt_height';
+    // Bel / kalça / boyun
+    if (k.includes('bel') && k.includes('çevre'))
+      return 'cnt_waist';
+    if (k.includes('kalça') && k.includes('çevre'))
+      return 'cnt_hip';
+    if (k.includes('boyun') && k.includes('çevre'))
+      return 'cnt_neck';
     // Hedef kilo (önce kontrol et)
     if (k.includes('hedef') && (k.includes('kilo') || k.includes('ağırlık')))
       return 'cnt_goal_wt';
@@ -2766,14 +2854,15 @@ function fillFromGForm(data) {
         k.includes('yemediğiniz'))
       return 'cnt_dislikes';
     // Beslenme şekli/tipi
-    if (k.includes('beslenme') && (k.includes('şekl') || k.includes('tür') || k.includes('nasıl') || k.includes('biçim')))
+    if (k.includes('beslenme') && (k.includes('şekl') || k.includes('tür') || k.includes('nasıl') || k.includes('biçim') || k.includes('tarz')))
       return '__diet_type__';
     // GI / sindirim
     if (k.includes('sindirim') || k.includes('bağırsak') || k.includes('reflü') ||
         k.includes('şişkinlik') || k.includes('kabızlık') || k.includes('gaz'))
       return 'cnt_gi';
-    // Egzersiz türü
-    if (k.includes('egzersiz') && (k.includes('tür') || k.includes('çeşit') || k.includes('ne tür') || k.includes('ne yapıy')))
+    // Egzersiz / fiziksel aktivite türü
+    if ((k.includes('egzersiz') || k.includes('spor') || k.includes('fiziksel aktivite')) &&
+        (k.includes('tür') || k.includes('çeşit') || k.includes('ne tür') || k.includes('ne yapıy') || k.includes('var mı')))
       return 'cnt_ex_type';
     // Egzersiz süresi
     if (k.includes('egzersiz') && (k.includes('süre') || k.includes('haftalık') || k.includes('dakika') || k.includes('sık')))
@@ -3009,6 +3098,15 @@ function fillFromGForm(data) {
         console.warn('[GForm] Doğum tarihi parse edilemedi, ham değer:', JSON.stringify(val));
         showGFormStatus('warn', `Doğum tarihi formatı tanınamadı: "${val}" — beklenen: gg/aa/yyyy`);
       }
+      return;
+    }
+
+    // Sayısal alanlar: Türkçe ondalık virgül ve birim temizle (örn. "70,5 kg" → 70.5)
+    const numericTargets = ['cnt_weight','cnt_height','cnt_goal_wt','cnt_waist','cnt_hip','cnt_neck','cnt_steps'];
+    if (numericTargets.includes(target)) {
+      const numStr = val.replace(',', '.').replace(/[^0-9.]/g, '');
+      const num = parseFloat(numStr);
+      if (!isNaN(num)) { el.value = num; filled++; }
       return;
     }
 
