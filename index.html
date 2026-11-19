@@ -1760,8 +1760,8 @@ async function suppGenPDF() {
     const page = doc.addPage([W,H]);
     let hB, hR;
     if (_fb) {
-      hR = await doc.embedFont(_fb.rBytes, { subset: true });
-      hB = await doc.embedFont(_fb.bBytes, { subset: true });
+      hR = await doc.embedFont(_fb.rBytes, { subset: false });
+      hB = await doc.embedFont(_fb.bBytes, { subset: false });
     } else {
       hB = await doc.embedFont(StandardFonts.HelveticaBold);
       hR = await doc.embedFont(StandardFonts.Helvetica);
@@ -2607,8 +2607,8 @@ async function downloadDietPDF() {
 
     let fB, fR;
     if (_fb) {
-      fR = await doc.embedFont(_fb.rBytes, { subset: true });
-      fB = await doc.embedFont(_fb.bBytes, { subset: true });
+      fR = await doc.embedFont(_fb.rBytes, { subset: false });
+      fB = await doc.embedFont(_fb.bBytes, { subset: false });
     } else {
       fB = await doc.embedFont(StandardFonts.HelveticaBold);
       fR = await doc.embedFont(StandardFonts.Helvetica);
@@ -2992,8 +2992,8 @@ async function gvGeneratePDF(v) {
     const W=595.28, H=841.89, SIDEBAR=58, MX=SIDEBAR+14, MY=42, CW=W-MX-22;
     let fB, fR;
     if (_fb) {
-      fR = await doc.embedFont(_fb.rBytes, { subset: true });
-      fB = await doc.embedFont(_fb.bBytes, { subset: true });
+      fR = await doc.embedFont(_fb.rBytes, { subset: false });
+      fB = await doc.embedFont(_fb.bBytes, { subset: false });
     } else {
       fB = await doc.embedFont(StandardFonts.HelveticaBold);
       fR = await doc.embedFont(StandardFonts.Helvetica);
