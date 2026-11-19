@@ -3147,26 +3147,59 @@ async function fetchGoogleForm() {
   const listEl = $('gform_list');
   if (listEl) { listEl.innerHTML=''; listEl.classList.add('hidden'); }
   showGFormStatus('info','Yanıtlar çekiliyor...');
+
+  const baseUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+
+  // Önce fetch dene (Apps Script CORS destekliyorsa çalışır)
+  let fetchOk = false;
   try {
-    const proxyUrl = url + (url.includes('?') ? '&' : '?') + 'callback=_gfcb&t=' + Date.now();
-    await new Promise((resolve, reject) => {
-      window._gfcb = (data) => {
-        delete window._gfcb;
-        if (data && Array.isArray(data.rows)) {
-          renderGFormList(data.rows);
-        } else {
-          fillFromGForm(data);
-        }
-        resolve();
-      };
-      const s = document.createElement('script');
-      s.src = proxyUrl;
-      s.onerror = () => { delete window._gfcb; reject(new Error('Script yüklenemedi')); };
-      document.head.appendChild(s);
-      setTimeout(() => { if (window._gfcb) { delete window._gfcb; reject(new Error('Zaman aşımı')); } }, 8000);
-    });
-  } catch(e) {
-    showGFormStatus('error', 'Bağlantı hatası: ' + e.message + '\n👉 Apps Script → Deploy → "Anyone" erişimine açık olmalı.');
+    const res = await fetch(baseUrl, { method: 'GET', mode: 'cors' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    fetchOk = true;
+    if (data && Array.isArray(data.rows)) {
+      renderGFormList(data.rows);
+    } else if (data && typeof data === 'object') {
+      fillFromGForm(data);
+    } else {
+      throw new Error('Geçersiz veri formatı');
+    }
+    showGFormStatus('success','Veriler başarıyla yüklendi.');
+  } catch (fetchErr) {
+    if (fetchOk) {
+      showGFormStatus('error', 'Veri hatası: ' + fetchErr.message);
+      return;
+    }
+    // fetch başarısız — JSONP dene (Apps Script'in callback parametresi varsa)
+    try {
+      const jsonpUrl = baseUrl + '&callback=_gfcb';
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          if (window._gfcb) { delete window._gfcb; }
+          reject(new Error('Zaman aşımı (8s)'));
+        }, 8000);
+        window._gfcb = (data) => {
+          clearTimeout(timer);
+          delete window._gfcb;
+          if (data && Array.isArray(data.rows)) {
+            renderGFormList(data.rows);
+          } else if (data && typeof data === 'object') {
+            fillFromGForm(data);
+          }
+          showGFormStatus('success','Veriler başarıyla yüklendi (JSONP).');
+          resolve();
+        };
+        const s = document.createElement('script');
+        s.src = jsonpUrl;
+        s.onerror = () => { clearTimeout(timer); delete window._gfcb; reject(new Error('Script yüklenemedi')); };
+        document.head.appendChild(s);
+      });
+    } catch (jsonpErr) {
+      showGFormStatus('error',
+        '⚠️ Bağlantı kurulamadı: ' + jsonpErr.message +
+        '\n\n✅ Çözüm: Apps Script → Deploy → "Anyone" seçili ve güncel deploy olmalı.' +
+        '\n• fetch hatası: ' + fetchErr.message);
+    }
   }
 }
 
