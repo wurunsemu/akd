@@ -55,11 +55,26 @@
     <select id="client_selector" onchange="loadClient()" class="bg-white/15 text-white text-xs border border-white/30 rounded-xl px-3 py-1.5 outline-none cursor-pointer">
       <option value="">— Danışan Seç —</option>
     </select>
-    <button onclick="newClient()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-xl font-semibold border border-white/30 transition">
+    <button onclick="newClient()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-xl font-semibold border border-white/30 transition" title="Yeni danışan">
       <i class="fa-solid fa-plus mr-1"></i>Yeni
+    </button>
+    <button onclick="showClientManager()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-xl font-semibold border border-white/30 transition" title="Danışanları yönet">
+      <i class="fa-solid fa-users-gear"></i>
     </button>
   </div>
 </header>
+
+<!-- ══ DANIŞAN YÖNETİM MODALI ══ -->
+<div id="client_manager_modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+      <h2 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-users-gear text-indigo-500 mr-2"></i>Danışan Listesi</h2>
+      <button onclick="closeClientManager()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+    </div>
+    <div id="client_manager_list" class="overflow-y-auto flex-1 px-4 py-3 space-y-2"></div>
+    <div class="px-5 py-3 border-t border-slate-100 text-[11px] text-slate-400 text-center">Silme işlemi geri alınamaz.</div>
+  </div>
+</div>
 
 <!-- ══════════════════ NAV ══════════════════ -->
 <nav class="bg-white border-b border-slate-200 px-4 py-2 no-print sticky top-0 z-10 shadow-sm">
@@ -1242,8 +1257,14 @@ function loadClient() {
 function saveClient() {
   const d = collectForm();
   if (!d.cnt_name) { alert('Danışan adı gerekli.'); return; }
-  if (curIdx >= 0) { CL[curIdx] = d; }
-  else { CL.push(d); curIdx = CL.length - 1; }
+  if (curIdx >= 0) {
+    CL[curIdx] = d;
+  } else {
+    // Aynı isimde kayıt varsa üzerine yaz, yoksa yeni ekle
+    const existIdx = CL.findIndex(c => c.cnt_name && c.cnt_name.trim() === d.cnt_name.trim());
+    if (existIdx >= 0) { CL[existIdx] = d; curIdx = existIdx; }
+    else { CL.push(d); curIdx = CL.length - 1; }
+  }
   localStorage.setItem('akd_clients', JSON.stringify(CL));
   suppSave();
   renderClientList();
@@ -1266,6 +1287,61 @@ function deleteClient() {
   localStorage.setItem('akd_clients', JSON.stringify(CL));
   curIdx = -1; clearForm(); renderClientList();
   $('client_badge').classList.add('hidden');
+}
+
+function showClientManager() {
+  const listEl = $('client_manager_list');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  if (CL.length === 0) {
+    listEl.innerHTML = '<p class="text-center text-slate-400 text-sm py-6">Henüz kayıtlı danışan yok.</p>';
+  } else {
+    CL.forEach((c, i) => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between bg-slate-50 hover:bg-slate-100 rounded-xl px-4 py-3 transition group';
+      const isActive = i === curIdx;
+      row.innerHTML = `
+        <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer" onclick="loadClientByIdx(${i}); closeClientManager();">
+          <i class="fa-solid fa-user-circle ${isActive ? 'text-indigo-500' : 'text-slate-300'} text-lg flex-shrink-0"></i>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-slate-800 truncate">${c.cnt_name || 'İsimsiz Danışan'}</p>
+            <p class="text-[11px] text-slate-400">${c.cnt_dob || ''} ${c.cnt_dob && c.cnt_sex ? '·' : ''} ${c.cnt_sex || ''}</p>
+          </div>
+          ${isActive ? '<span class="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-semibold ml-auto mr-2">Aktif</span>' : ''}
+        </div>
+        <button onclick="deleteClientByIdx(${i})" class="flex-shrink-0 text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition" title="Sil">
+          <i class="fa-solid fa-trash-can text-xs"></i>
+        </button>`;
+      listEl.appendChild(row);
+    });
+  }
+  $('client_manager_modal').classList.remove('hidden');
+}
+
+function closeClientManager() {
+  $('client_manager_modal').classList.add('hidden');
+}
+
+function loadClientByIdx(idx) {
+  curIdx = idx;
+  fillForm(CL[idx]);
+  suppLoad();
+  updateBadge();
+  calcBMI(); calcEnergy(); calcBIA();
+  renderLabComments(); renderClinicalRecs();
+  $('client_selector').value = curIdx;
+}
+
+function deleteClientByIdx(idx) {
+  const name = CL[idx]?.cnt_name || 'Bu danışan';
+  if (!confirm(`"${name}" silinsin mi?`)) return;
+  CL.splice(idx, 1);
+  localStorage.setItem('akd_clients', JSON.stringify(CL));
+  if (curIdx === idx) { curIdx = -1; clearForm(); $('client_badge').classList.add('hidden'); }
+  else if (curIdx > idx) { curIdx--; }
+  renderClientList();
+  if (curIdx >= 0) $('client_selector').value = curIdx;
+  showClientManager(); // Listeyi yenile
 }
 
 function updateBadge() {
@@ -1610,25 +1686,46 @@ function renderSuppClinRecs() {
 
 /* Türkçe → Latin (pdf-lib StandardFonts sadece WinAnsi destekler) */
 function trTxt(s) {
-  if (!s) return '';
+  if (!s) return ‘’;
   return String(s)
-    .replace(/[şŞğĞıİöÖüÜçÇâÂîÎûÛéàè]/g, m => (
-      {ş:'s',Ş:'S',ğ:'g',Ğ:'G',ı:'i',İ:'I',ö:'o',Ö:'O',ü:'u',Ü:'U',ç:'c',Ç:'C',
-       â:'a',Â:'A',î:'i',Î:'I',û:'u',Û:'U',é:'e',à:'a',è:'e'}[m]||m))
-    .replace(/—/g,'-')   // em dash —
-    .replace(/–/g,'-')   // en dash –
-    .replace(/→/g,'->')  // →
-    .replace(/•/g,'*')   // bullet •
-    .replace(/½/g,'1/2') // ½
-    .replace(/¼/g,'1/4') // ¼
-    .replace(/¾/g,'3/4') // ¾
-    .replace(/×/g,'x')   // ×
-    .replace(/‘/g,"'")   // '
-    .replace(/’/g,"'")   // '
-    .replace(/“/g,'"')   // "
-    .replace(/”/g,'"')   // "
-    .replace(/…/g,'...') // …
-    .replace(/[^\x20-\x7E]/g, '?'); // fallback: replace any remaining non-ASCII
+    // Türkçe harfler — Unicode escape ile kesin eşleşme
+    .replace(/ş/g,’s’)  // ş
+    .replace(/Ş/g,’S’)  // Ş
+    .replace(/ğ/g,’g’)  // ğ
+    .replace(/Ğ/g,’G’)  // Ğ
+    .replace(/ı/g,’i’)  // ı (dotless i)
+    .replace(/İ/g,’I’)  // İ (dotted I)
+    .replace(/ö/g,’o’)  // ö
+    .replace(/Ö/g,’O’)  // Ö
+    .replace(/ü/g,’u’)  // ü
+    .replace(/Ü/g,’U’)  // Ü
+    .replace(/ç/g,’c’)  // ç
+    .replace(/Ç/g,’C’)  // Ç
+    .replace(/â/g,’a’)  // â
+    .replace(/Â/g,’A’)  // Â
+    .replace(/î/g,’i’)  // î
+    .replace(/Î/g,’I’)  // Î
+    .replace(/û/g,’u’)  // û
+    .replace(/Û/g,’U’)  // Û
+    // Özel noktalama
+    .replace(/—/g,’-’)   // em dash —
+    .replace(/–/g,’-’)   // en dash –
+    .replace(/→/g,’->’)  // →
+    .replace(/•/g,’*’)   // bullet •
+    .replace(/½/g,’1/2’) // ½
+    .replace(/¼/g,’1/4’) // ¼
+    .replace(/¾/g,’3/4’) // ¾
+    .replace(/×/g,’x’)   // ×
+    .replace(/‘/g,”’”)   // ‘
+    .replace(/’/g,”’”)   // ‘
+    .replace(/“/g,’”’)   // “
+    .replace(/”/g,’”’)   // “
+    .replace(/…/g,’...’)  // …
+    .replace(/é/g,’e’)   // é
+    .replace(/à/g,’a’)   // à
+    .replace(/è/g,’e’)   // è
+    // Son kale: kalan non-ASCII karakterleri boşluğa çevir
+    .replace(/[^\x20-\x7E]/g, ‘ ‘);
 }
 
 async function suppGenPDF() {
@@ -1723,6 +1820,9 @@ window.onload = () => {
   renderClientList();
   renderMenuForm();
   $('client_selector').addEventListener('change', loadClient);
+  // Modal dışına tıklayınca kapat
+  const modal = $('client_manager_modal');
+  if (modal) modal.addEventListener('click', e => { if (e.target === modal) closeClientManager(); });
   $('cnt_weight').addEventListener('change', ()=>{ calcBMI(); calcEnergy(); updateBadge(); });
   $('cnt_height').addEventListener('change', ()=>{ calcBMI(); calcEnergy(); updateBadge(); });
   $('cnt_age').addEventListener('change', calcEnergy);
