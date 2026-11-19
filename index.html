@@ -243,7 +243,16 @@
     </div>
     <div>
       <label class="text-[11px] text-slate-500 font-semibold">Hedef / Beklenti</label>
-      <textarea id="cnt_goal" rows="2" class="input mt-1" placeholder="Danışanın hedefi ve beklentisi"></textarea>
+      <select id="cnt_goal_type" class="input mt-1" onchange="applyGoalToEnergy()">
+        <option value="">— Hedef seçin —</option>
+        <option value="Kilo Verme">Kilo Verme</option>
+        <option value="Kilo Koruma">Kilo Koruma</option>
+        <option value="Kilo Alma">Kilo Alma</option>
+        <option value="Kas Kütlesi Artırma">Kas Kütlesi Artırma</option>
+        <option value="Sağlıklı Beslenme">Sağlıklı Beslenme / Kan Değerleri</option>
+      </select>
+      <textarea id="cnt_goal" rows="2" class="input mt-1.5" placeholder="Hedefin ayrıntısı ve beklentisi (ör. 3 ayda 5 kg)" onchange="applyGoalToEnergy(true)"></textarea>
+      <p class="text-[11px] text-slate-400 mt-1">Seçilen hedef, 2. sayfadaki enerji hedefine otomatik aktarılır.</p>
     </div>
     <div>
       <label class="text-[11px] text-slate-500 font-semibold block mb-2">Tanı / Hastalık Geçmişi</label>
@@ -614,8 +623,8 @@
     <h3 class="section-title"><i class="fa-solid fa-notes-medical text-indigo-600"></i> Klinik Notlar</h3>
     <textarea id="cnt_notes" rows="4" class="input" placeholder="Genel klinik notlar, özel durumlar, yaklaşım notları..."></textarea>
     <div class="flex gap-2">
-      <button onclick="saveClient()" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition flex items-center justify-center gap-2">
-        <i class="fa-solid fa-floppy-disk"></i> Danışanı Kaydet
+      <button onclick="if (saveClient() !== false) { applyGoalToEnergy(true); switchTab('en'); }" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+        <i class="fa-solid fa-floppy-disk"></i> Danışanı Kaydet ve İlerle <i class="fa-solid fa-arrow-right text-xs"></i>
       </button>
       <button onclick="deleteClient()" class="px-4 py-2.5 bg-red-50 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-100 transition border border-red-100">
         <i class="fa-solid fa-trash-can"></i>
@@ -643,7 +652,7 @@
       </div>
       <div>
         <label class="text-[11px] text-slate-500 font-semibold">Kalori Hedefi</label>
-        <select id="en_goal" class="input mt-1" onchange="calcEnergy()">
+        <select id="en_goal" class="input mt-1" onchange="$('en_goal_hint').textContent=''; calcEnergy()">
           <option value="-500">Kilo Verme (–500 kcal/gün)</option>
           <option value="-250">Hafif Kilo Verme (–250 kcal/gün)</option>
           <option value="0" selected>Koruma (TEE)</option>
@@ -651,6 +660,7 @@
           <option value="500">Kilo Alma (+500 kcal/gün)</option>
           <option value="custom">Özel</option>
         </select>
+        <p id="en_goal_hint" class="text-[11px] text-indigo-600 font-semibold mt-1 min-h-[14px]"></p>
       </div>
       <div>
         <label class="text-[11px] text-slate-500 font-semibold">Yağ Yüzdesi (BIA)</label>
@@ -666,7 +676,7 @@
     <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 space-y-3">
       <div class="grid grid-cols-3 gap-2 text-center">
         <div class="bg-white rounded-xl p-3 shadow-sm">
-          <p class="text-[11px] text-slate-400 font-semibold">İstirahat Metabolizma</p>
+          <p class="text-[11px] text-slate-400 font-semibold">Dinlenik Metabolizma</p>
           <p id="en_rmr" class="text-lg font-black text-slate-700">—</p>
           <p class="text-[11px] text-orange-500">kcal/gün</p>
         </div>
@@ -932,7 +942,32 @@
           <i class="fa-solid fa-file-pdf text-rose-400 mr-1"></i> Diyet planı PDF'ini sürükleyin veya tıklayın
         </div>
         <div id="menu_pdf_status" class="text-xs font-semibold min-h-[14px]"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] text-slate-500 font-semibold">Program Adı <span class="font-normal">(PDF başlığı)</span></label>
+            <input id="cnt_program" type="text" class="input mt-1 text-xs" placeholder="ör. Rutin">
+          </div>
+          <div id="prog1_label_wrap" class="hidden">
+            <label class="text-[11px] text-slate-500 font-semibold">1. Programın Adı</label>
+            <input id="cnt_prog1_label" type="text" class="input mt-1 text-xs" placeholder="Hafta İçi">
+          </div>
+        </div>
         <textarea id="written_menu" rows="12" placeholder="Örn:&#10;KAHVALTI: 08.00 - 09.00&#10;2 adet yumurtalı omlet&#10;2 dilim tam buğday ekmeği&#10;...&#10;&#10;ÖĞLE: 13.00 - 14.00&#10;..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs leading-relaxed font-mono" oninput="save()"></textarea>
+        <input type="hidden" id="cnt_two_prog" value="">
+        <button id="btn_two_prog" type="button" onclick="toggleTwoProg()" class="w-full py-2 border-2 border-dashed border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold hover:bg-emerald-50 transition">
+          <i class="fa-solid fa-plus"></i> İkinci program ekle (ör. Hafta İçi / Hafta Sonu)
+        </button>
+        <div id="prog2_wrap" class="hidden space-y-2 border-2 border-emerald-100 rounded-xl p-3 bg-emerald-50/40">
+          <div class="flex items-end gap-2">
+            <div class="flex-1">
+              <label class="text-[11px] text-slate-500 font-semibold">2. Programın Adı</label>
+              <input id="cnt_prog2_label" type="text" class="input mt-1 text-xs" placeholder="Hafta Sonu">
+            </div>
+            <button type="button" onclick="toggleTwoProg()" class="px-3 py-2 bg-red-50 text-red-500 border border-red-100 rounded-xl text-xs font-semibold hover:bg-red-100" title="İkinci programı kaldır"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+          <textarea id="written_menu2" rows="10" placeholder="Kahvaltı 10.00 - 11.00&#10;...&#10;&#10;Öğle 14.00&#10;..." class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs leading-relaxed font-mono"></textarea>
+          <p class="text-[11px] text-slate-500">İki program PDF'te aynı sayfaya kendi başlıklarıyla yazılır; sığmazsa ikincisi yeni sayfadan başlar.</p>
+        </div>
       </div>
       <div class="space-y-2">
         <label class="block text-xs font-bold text-slate-700">
@@ -943,6 +978,21 @@
           <i class="fa-solid fa-comment-medical text-rose-500"></i> Danışana Öneriler <span class="font-normal text-slate-400">(Diyet PDF'inde "Notlar" sayfasına yazılır)</span>
         </label>
         <textarea id="client_recs" rows="6" placeholder="İstediğin her zaman bana yazabilirsin.&#10;1.5 L su içtiğinden emin ol." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs leading-relaxed" oninput="save()"></textarea>
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-slate-500">Hazır öneriler — tıklayınca eklenir:</span>
+            <button type="button" onclick="toggleRecPresetEditor()" class="text-[11px] text-indigo-500 hover:text-indigo-700 font-semibold"><i class="fa-solid fa-pen"></i> Düzenle</button>
+          </div>
+          <div id="rec_presets" class="flex flex-wrap gap-1.5"></div>
+          <div id="rec_presets_editor" class="hidden space-y-1.5">
+            <textarea id="rec_presets_text" rows="7" class="w-full bg-white border border-indigo-200 rounded-xl p-3 text-xs leading-relaxed" placeholder="Her satıra bir öneri yazın"></textarea>
+            <div class="flex gap-2">
+              <button type="button" onclick="saveRecPresets()" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+              <button type="button" onclick="resetRecPresets()" class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-200">Varsayılana dön</button>
+              <button type="button" onclick="toggleRecPresetEditor()" class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-200">Kapat</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -956,7 +1006,6 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4 no-print">
       <h2 class="section-title"><i class="fa-solid fa-file-invoice text-rose-600"></i> Klinik Rapor & PDF Çıktısı</h2>
       <div class="flex flex-wrap gap-2 items-center">
-        <input id="cnt_program" type="text" class="input text-xs" style="width:11rem;padding:7px 10px" placeholder="Program adı (ör. Rutin)" title="Diyet PDF'inde başlık olarak yazılır">
         <button onclick="generateReport()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition flex items-center gap-1.5 shadow-sm">
           <i class="fa-solid fa-arrows-rotate"></i> Raporu Oluştur / Yenile
         </button>
@@ -1148,7 +1197,19 @@
 
     <div>
       <label class="text-[11px] text-slate-500 font-semibold">Bu Görüşme için Diyet Planı</label>
-      <textarea id="gv_menu" rows="10" class="input mt-1 resize-y font-mono text-xs" placeholder="Kahvaltı 08:00 - 09:00&#10;...&#10;&#10;Ara Öğün 10:30&#10;..."></textarea>
+      <input id="gv_label1" type="text" class="input mt-1 text-xs" placeholder="Programın adı (iki program varsa, ör. Hafta İçi)">
+      <textarea id="gv_menu" rows="10" class="input mt-1 resize-y font-mono text-xs" placeholder="Kahvaltı 08.00 - 09.00&#10;...&#10;&#10;Ara Öğün 10.30&#10;..."></textarea>
+    </div>
+
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">2. Program <span class="font-normal">(opsiyonel – ör. Hafta Sonu)</span></label>
+      <input id="gv_label2" type="text" class="input mt-1 text-xs" placeholder="Hafta Sonu">
+      <textarea id="gv_menu2" rows="6" class="input mt-1 resize-y font-mono text-xs" placeholder="Boş bırakılırsa PDF'te tek program olur"></textarea>
+    </div>
+
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">Danışana Öneriler <span class="font-normal">(PDF'te "Notlar" sayfası)</span></label>
+      <textarea id="gv_recs" rows="4" class="input mt-1 resize-y text-xs"></textarea>
     </div>
 
     <div class="flex gap-2 pt-2 border-t border-teal-100">
@@ -1163,6 +1224,30 @@
       </button>
     </div>
     <div id="gv_form_msg" class="text-xs font-semibold min-h-[16px]"></div>
+  </div>
+
+  <!-- Google Meet Randevuları -->
+  <div class="card space-y-3">
+    <div class="flex items-center justify-between gap-2">
+      <h3 class="section-title"><i class="fa-solid fa-video text-blue-600"></i> Google Meet Randevuları</h3>
+      <a href="https://meet.google.com/new" target="_blank" rel="noopener" class="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-xs font-bold hover:bg-blue-100 whitespace-nowrap"><i class="fa-solid fa-plus"></i> Yeni Meet Oluştur</a>
+    </div>
+    <p class="text-xs text-slate-500">"Yeni Meet Oluştur" ile açılan görüşmenin linkini kopyalayıp buraya yapıştırın. Randevuyu danışana WhatsApp ile gönderebilir, saati gelince tek tıkla katılabilirsiniz.</p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div><label class="text-[11px] text-slate-500 font-semibold">Tarih</label><input id="meet_date" type="date" class="input mt-1"></div>
+      <div><label class="text-[11px] text-slate-500 font-semibold">Saat</label><input id="meet_time" type="time" class="input mt-1" value="10:00"></div>
+      <div class="col-span-2"><label class="text-[11px] text-slate-500 font-semibold">Meet Linki</label><input id="meet_link" type="url" class="input mt-1" placeholder="https://meet.google.com/abc-defg-hij"></div>
+    </div>
+    <div class="flex gap-2">
+      <input id="meet_note" type="text" class="input text-xs" placeholder="Not (ör. 2. kontrol görüşmesi)">
+      <button type="button" onclick="meetAdd()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 whitespace-nowrap"><i class="fa-solid fa-calendar-plus"></i> Randevu Ekle</button>
+    </div>
+    <div id="meet_msg" class="text-xs font-semibold min-h-[14px]"></div>
+    <div id="meet_list" class="space-y-2"></div>
+    <details class="text-xs">
+      <summary class="cursor-pointer font-semibold text-blue-700">Tüm danışanların yaklaşan randevuları</summary>
+      <div id="meet_all" class="mt-2 space-y-2"></div>
+    </details>
   </div>
 
   <!-- Görüşme Kartları Listesi -->
@@ -1207,7 +1292,7 @@ let curIdx = -1;
 const FIELDS = [
   'cnt_name','cnt_program','cnt_dob','cnt_age','cnt_sex','cnt_civil','cnt_job','cnt_phone','cnt_date','cnt_ref',
   'cnt_height','cnt_weight','cnt_goal_wt','cnt_waist','cnt_hip','cnt_neck',
-  'cnt_complaint','cnt_goal','cnt_meds','cnt_family','cnt_notes',
+  'cnt_complaint','cnt_goal_type','cnt_goal','cnt_meds','cnt_family','cnt_notes',
   'dx_other','cnt_pal','cnt_ex_type','cnt_ex_dur','cnt_steps',
   'cnt_meals','cnt_skip','cnt_diet_type','cnt_water','cnt_allergy','cnt_dislikes','cnt_alcohol','cnt_smoke','cnt_gi',
   'ye_rel','ye_body','ye_psych','ye_note',
@@ -1218,7 +1303,7 @@ const FIELDS = [
   'lab_vitd','lab_b12','lab_folat','lab_mg','lab_zn','lab_ca',
   'lab_alt','lab_ast','lab_creat','lab_gfr','lab_ua','lab_crp',
   'en_formula','en_goal','en_bf','en_custom_kcal','en_cho_pct','en_pro_gkg',
-  'mn_kcal','mn_meals','mn_notes','written_menu','client_notes','client_recs',
+  'mn_kcal','mn_meals','mn_notes','written_menu','client_notes','client_recs','cnt_two_prog','cnt_prog1_label','cnt_prog2_label','written_menu2',
   'tn_date','tn_fm','tn_bf','tn_ffm','tn_mm','tn_tbw','tn_vfa','tn_bmr','tn_bm','tn_notes'
 ];
 
@@ -1237,11 +1322,13 @@ function collectForm() {
 function fillForm(d) {
   FIELDS.forEach(id => { const el = $(id); if (el && d[id] !== undefined) el.value = d[id]; });
   CHECKBOXES.forEach(id => { const el = $(id); if (el && d[id] !== undefined) el.checked = !!d[id]; });
+  if (window.syncTwoProgUI) syncTwoProgUI();
 }
 
 function clearForm() {
   FIELDS.forEach(id => { const el = $(id); if (!el) return; el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = ''; });
   CHECKBOXES.forEach(id => { const el = $(id); if (el) el.checked = false; });
+  if (window.syncTwoProgUI) syncTwoProgUI();
 }
 
 function renderClientList() {
@@ -1270,7 +1357,7 @@ function loadClient() {
 
 function saveClient() {
   const d = collectForm();
-  if (!d.cnt_name) { alert('Danışan adı gerekli.'); return; }
+  if (!d.cnt_name) { alert('Danışan adı gerekli.'); return false; }
   if (curIdx >= 0) {
     CL[curIdx] = d;
   } else {
@@ -1883,7 +1970,8 @@ function switchTab(tabId) {
   if (tabId==='sp') { renderSuppClinRecs(); suppLoad(); }
   if (tabId==='dg') { renderExchangeTable(); renderMenuRecs(); }
   if (tabId==='rp') generateReport();
-  if (tabId==='gv') gvRender();
+  if (tabId==='gv') { gvRender(); meetRender(); }
+  if (tabId==='dg') { syncTwoProgUI(); renderRecPresets(); }
 }
 
 /* ══ BAŞLANGIÇ ══ */
@@ -2395,7 +2483,7 @@ function loadSampleMenu() {
 
 function loadSampleTextMenu() {
   const wm = $('written_menu');
-  if (wm) wm.value = `KAHVALTI (07:30 – 08:30)
+  if (wm) wm.value = `KAHVALTI (07.30 – 08.30)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • 2 adet yumurta (haşlanmış veya omlet, az yağlı)
 • 1 dilim tam buğday ekmeği
@@ -2404,12 +2492,12 @@ function loadSampleTextMenu() {
 • 1 su bardağı süt veya ayran
 • Yeşil / siyah zeytin (3-4 adet)
 
-ARA ÖĞÜN 1 (10:30)
+ARA ÖĞÜN (10.30)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • 1 adet orta boy meyve (elma / armut / mandalina)
 • 150g yoğurt (sade, az yağlı)
 
-ÖĞLE (12:30 – 13:30)
+ÖĞLE (12.30 – 13.30)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • 150g ızgara tavuk / balık / kırmızı et
 • 1 kase sebze çorbası (az tuzlu)
@@ -2417,12 +2505,12 @@ ARA ÖĞÜN 1 (10:30)
 • Bol yeşil salata (zeytinyağı ile)
 • 1 tatlı kaşığı zeytinyağı
 
-ARA ÖĞÜN 2 (15:30 – 16:00)
+ARA ÖĞÜN (15.30 – 16.00)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • 1 küçük meyve
 • 1 avuç çiğ badem / ceviz
 
-AKŞAM (19:00 – 20:00)
+AKŞAM (19.00 – 20.00)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • 150g et / balık / baklagil
 • Bol ızgara / buğulama sebze
@@ -2430,7 +2518,7 @@ AKŞAM (19:00 – 20:00)
 • 1 tatlı kaşığı zeytinyağı
 • Yoğurt / kefir (150g)
 
-ARA ÖĞÜN 3 (21:30 – 22:00)
+ARA ÖĞÜN (21.30 – 22.00)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • 150g süzme yoğurt
 • 1 kaşık bal veya tarçın
@@ -2609,221 +2697,243 @@ function generateReport() {
   </div>`;
 }
 
-async function downloadDietPDF() {
-  const msgEl = $('diet_pdf_msg');
-  const setMsg = (t,c='text-indigo-600') => { if(msgEl){msgEl.textContent=t; msgEl.className='text-xs font-semibold min-h-[18px] no-print px-1 '+c;} };
-  setMsg('PDF olusturuluyor...');
+/* Türkçe saat yazımı: 10:30 → 10.30 */
+function trTime(s) { return String(s == null ? '' : s).replace(/\b(\d{1,2}):(\d{2})\b/g, '$1.$2'); }
+/* "Ara Öğün 2 (15.30)" → "Ara Öğün (15.30)" */
+function stripSnackNo(s) { return String(s).replace(/^(\s*ara\s*(?:öğün|ogun))\s*\d+\b\s*/iu, '$1 ').replace(/\s+$/, ''); }
 
-  let PDFLib; try{PDFLib=window.PDFLib;}catch(e){}
-  if (!PDFLib||!PDFLib.PDFDocument) { setMsg('PDF kutuphanesi yuklenemedi.','text-red-500'); return; }
-
-  const {PDFDocument,rgb,StandardFonts} = PDFLib;
+/* Diyet PDF'i üretir.
+   o = { name, date (YYYY-MM-DD), title, programs: [{ label, menu }], recs }
+   Bir program varsa başlık = title. İki program varsa her biri kendi alt başlığıyla
+   (ör. Hafta İçi / Hafta Sonu) aynı sayfaya sığdırılır; sığmazsa ikincisi yeni sayfadan başlar. */
+async function buildDietPDF(o) {
+  const PDFLib = window.PDFLib;
+  if (!PDFLib || !PDFLib.PDFDocument) throw new Error('PDF kutuphanesi yuklenemedi.');
+  const { PDFDocument, rgb, StandardFonts } = PDFLib;
   const useTr = !!window.fontkit;
   const tr = s => useTr ? (s == null ? '' : String(s)) : trTxt(s);
 
-  const rawName = ($('cnt_name')||{}).value||'Danisan';
-  const name    = tr(rawName.trim());
-  const progName= tr((($('cnt_program')||{}).value||'Bireysel Diyet Plani').trim());
-  const dateStr = ($('cnt_date')||{}).value||new Date().toISOString().slice(0,10);
-  const menu    = ($('written_menu')||{}).value||'';
-  const notes   = ($('client_recs')||{}).value||'';   // Notlar sayfası: danışana öneriler (klinik notlar dahili kalır)
+  const rawName = (o.name || 'Danışan').trim();
+  const name    = tr(rawName);
+  const title   = tr((o.title || 'Bireysel Diyet Programı').trim());
+  const dateStr = o.date || new Date().toISOString().slice(0,10);
+  const programs = (o.programs || []).filter((p, i) => i === 0 || String(p.menu||'').trim());
+  const recs    = o.recs || '';
 
-  // ── Renkler (örnek şablondan birebir) ───────────────────
   const hex = h => rgb(parseInt(h.slice(1,3),16)/255, parseInt(h.slice(3,5),16)/255, parseInt(h.slice(5,7),16)/255);
-  const cName   = hex('#a6a6a6');  // danışan adı (gri)
-  const cTitle  = hex('#103b2c');  // program başlığı + yiyecek satırları (koyu yeşil)
-  const cMeal   = hex('#cdbc31');  // öğün + saat (altın sarısı)
-  const cOr     = hex('#642b9b');  // "ya da" (mor)
-  const cSub    = hex('#00bf63');  // alt başlık, ör. "Yulaf Bowl" (yeşil)
-  const cNoteHd = hex('#ff5757');  // "Notlar:" etiketi (mercan)
+  const cName   = hex('#a6a6a6');
+  const cTitle  = hex('#103b2c');
+  const cMeal   = hex('#cdbc31');
+  const cOr     = hex('#642b9b');
+  const cSub    = hex('#00bf63');
+  const cNoteHd = hex('#ff5757');
 
+  const doc = await PDFDocument.create();
+  if (useTr) doc.registerFontkit(window.fontkit);
+  doc.setTitle(name + ' - ' + title);
+  doc.setAuthor('Uzm. Dyt. Yunus Aksu');
+  doc.setProducer('AKD - Asistan Klinik Diyetisyen');
+
+  const _b64ToU8 = b => { const bin=atob(b); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u; };
+  const bgImg = await doc.embedPng(_b64ToU8(_DIET_BG_B64));
+
+  let fName, fTitle, fR, fB;
+  if (useTr) {
+    fName  = await doc.embedFont(_b64ToU8(_DIET_FONTS_B64.franklin800));
+    fTitle = await doc.embedFont(_b64ToU8(_DIET_FONTS_B64.abril));
+    fR     = await doc.embedFont(_b64ToU8(_DIET_FONTS_B64.lora400));
+    fB     = await doc.embedFont(_b64ToU8(_DIET_FONTS_B64.lora700));
+  } else {
+    fName  = await doc.embedFont(StandardFonts.HelveticaBold);
+    fTitle = await doc.embedFont(StandardFonts.TimesRomanBold);
+    fR     = await doc.embedFont(StandardFonts.TimesRoman);
+    fB     = await doc.embedFont(StandardFonts.TimesRomanBold);
+  }
+
+  // ── Sayfa geometrisi (şablon PDF ile aynı: 595.5 x 842.25 pt) ──
+  const W = 595.5, H = 842.25;
+  const NAME_CX = 470, NAME_MAXW = 205;
+  const TITLE_CX = 378, TITLE_MAXW = 200;
+  const CX = TITLE_CX, CW = 330;
+  const TOP_Y = H - 124, BOTTOM_Y = 112;
+  const AVAIL = TOP_Y - BOTTOM_Y;
+
+  const fitSize = (font, text, size, maxW, minSize) => { let s = size; while (s > minSize && font.widthOfTextAtSize(text, s) > maxW) s -= 0.5; return s; };
+
+  let page, y;
+  function newPage(pageTitle) {
+    page = doc.addPage([W, H]);
+    page.drawImage(bgImg, { x: -11.4175, y: H - 851.5709, width: 618.2329, height: 860.5744 });
+    const ns = fitSize(fName, name, 22, NAME_MAXW, 12);
+    page.drawText(name, { x: NAME_CX - fName.widthOfTextAtSize(name, ns)/2, y: H - 41.5, size: ns, font: fName, color: cName });
+    const ts = fitSize(fTitle, pageTitle, 22, TITLE_MAXW, 12);
+    page.drawText(pageTitle, { x: TITLE_CX - fTitle.widthOfTextAtSize(pageTitle, ts)/2, y: H - 86, size: ts, font: fTitle, color: cTitle });
+    y = TOP_Y;
+  }
+
+  // Fontta karşılığı olmayan karakterleri (emoji, kutu çizgisi vb.) at; baştaki madde imini kaldır; saatleri 10.30 yap
+  const _cs = (() => { const a = new Set(fR.getCharacterSet()); return new Set(fB.getCharacterSet().filter(c => a.has(c))); })();
+  const SEP_RE = /^[\s\-_=~*.·•─━═▬―]+$/;
+  const cleanLine = raw => trTime([...tr(raw)].filter(ch => _cs.has(ch.codePointAt(0))).join(''))
+    .replace(/^\s*(?:[•·▪◦*]|-(?=\s))\s*/, '').replace(/\s{2,}/g, ' ').trim();
+
+  const asc = s => trTxt(s).toLowerCase();
+  const MEAL_RE = /^(kahvalti|sabah|ogle|aksam|ara ogun|ara\s*ogun|gece|uyaninca|yatmadan|kusluk|ikindi|antrenman|spor)/;
+  const TIME_RE = /^\d{1,2}[.:]\d{2}/;
+  const isOr = s => /^(ya\s*da|veya|yada)$/i.test(asc(s).replace(/[.:]/g,'').trim());
+
+  function buildBlocks(text) {
+    const out = []; let sub = false;
+    for (const raw of String(text||'').split('\n')) {
+      if (raw.trim() && SEP_RE.test(raw)) continue;          // ━━━ / ---- ayırıcıları
+      const t = cleanLine(raw);
+      if (!t) { out.push({ k:'blank' }); sub = false; continue; }
+      const a = asc(t);
+      if (MEAL_RE.test(a) || TIME_RE.test(a)) { out.push({ k:'meal', t: stripSnackNo(t).replace(/:$/,'') }); sub = false; }
+      else if (isOr(t)) out.push({ k:'or', t: 'ya da' });
+      else if (/:$/.test(t) && t.length < 40) { out.push({ k:'sub', t: t.replace(/:$/,'') }); sub = true; }
+      else out.push({ k:'item', t, reg: sub });
+    }
+    return out;
+  }
+
+  function segs(text, bold) {
+    if (!bold) return [{ s: text, f: fR }];
+    return text.split(/(\s(?:veya|ya da)\s)/i).filter(p => p).map(p => ({ s: p, f: /^\s(?:veya|ya da)\s$/i.test(p) ? fR : fB }));
+  }
+  function wrapText(text, font, size, maxW) {
+    const out = []; let cur = '';
+    for (const w of text.split(/\s+/)) {
+      const test = cur ? cur + ' ' + w : w;
+      if (cur && font.widthOfTextAtSize(test, size) > maxW) { out.push(cur); cur = w; } else cur = test;
+    }
+    if (cur) out.push(cur);
+    return out;
+  }
+
+  function layout(blocks, fs) {
+    const lh = fs * 1.33, rows = [];
+    let first = true;
+    for (const b of blocks) {
+      if (b.k === 'blank') { if (!first) rows.push({ gap: lh * 1.1 }); continue; }
+      if (b.k === 'ptitle') {
+        // Program alt başlığı (ör. Hafta İçi / Hafta Sonu)
+        const ps = Math.min(16, Math.max(11, fs * 1.9));
+        if (!first) rows.push({ gap: lh * 2.2 });
+        rows.push({ segs:[{ s:b.t, f:fTitle }], c:cTitle, h: ps * 1.25, size: ps, keep: true, line: true });
+        rows.push({ gap: lh * 0.9 });
+      } else if (b.k === 'meal') {
+        if (!first) rows.push({ gap: lh * 1.6 });
+        for (const l of wrapText(b.t, fB, fs, CW)) rows.push({ segs:[{s:l,f:fB}], c:cMeal, h: lh, keep: true });
+      } else if (b.k === 'or') {
+        rows.push({ gap: lh * 0.7 }); rows.push({ segs:[{s:b.t,f:fR}], c:cOr, h: lh }); rows.push({ gap: lh * 0.7 });
+      } else if (b.k === 'sub') {
+        rows.push({ segs:[{s:b.t,f:fB}], c:cSub, h: lh });
+      } else {
+        const bold = !b.reg;
+        for (const l of wrapText(b.t, bold ? fB : fR, fs, CW)) rows.push({ segs: segs(l, bold), c:cTitle, h: lh });
+      }
+      first = false;
+    }
+    const clean = [];
+    for (const r of rows) {
+      if (r.gap && clean.length && clean[clean.length-1].gap) { clean[clean.length-1].gap = Math.max(clean[clean.length-1].gap, r.gap); continue; }
+      if (r.gap && !clean.length) continue;
+      clean.push(r);
+    }
+    while (clean.length && clean[clean.length-1].gap) clean.pop();
+    return clean;
+  }
+  const totalH = rows => rows.reduce((s, r) => s + (r.gap || r.h), 0);
+  const pickSize = (blocks, minFs = 6.5) => {
+    for (let fs = 10; fs >= minFs; fs -= 0.25) if (totalH(layout(blocks, fs)) <= AVAIL) return fs;
+    return null;
+  };
+
+  function drawRows(rows, fs, contTitle) {
+    for (const r of rows) {
+      if (r.gap) { if (y < TOP_Y) y -= r.gap; continue; }
+      if (y < BOTTOM_Y || (r.keep && y - r.h * 2.5 < BOTTOM_Y)) newPage(contTitle);
+      const sz = r.size || fs;
+      const w = r.segs.reduce((s, g) => s + g.f.widthOfTextAtSize(g.s, sz), 0);
+      let x = CX - w / 2;
+      for (const g of r.segs) { page.drawText(g.s, { x, y, size: sz, font: g.f, color: r.c }); x += g.f.widthOfTextAtSize(g.s, sz); }
+      if (r.line) page.drawLine({ start:{ x: CX - w/2 - 6, y: y - 4 }, end:{ x: CX + w/2 + 6, y: y - 4 }, thickness: 1.2, color: hex('#e2e2e2') });
+      y -= r.h;
+    }
+  }
+
+  // ── Diyet programı sayfa(lar)ı ──
+  const progBlocks = programs.map(p => buildBlocks(p.menu));
+  const hasContent = progBlocks.some(b => b.some(x => x.k !== 'blank'));
+  newPage(title);
+  if (!hasContent) {
+    const t = tr('(Menü girilmemiş - Menü sekmesinden doldurun)');
+    page.drawText(t, { x: CX - fR.widthOfTextAtSize(t, 9)/2, y, size: 9, font: fR, color: cName });
+  } else if (programs.length === 1) {
+    const fs = pickSize(progBlocks[0]) || 6.5;
+    drawRows(layout(progBlocks[0], fs), fs, title + ' (devam)');
+  } else {
+    const withHead = programs.map((p, i) => [{ k:'ptitle', t: tr(p.label || ('Program ' + (i+1))) }].concat(progBlocks[i]));
+    const all = withHead.flatMap((b, i) => i ? [{ k:'blank' }].concat(b) : b);
+    const fsAll = pickSize(all, 7);
+    if (fsAll) {
+      drawRows(layout(all, fsAll), fsAll, title + ' (devam)');           // hepsi aynı sayfada
+    } else {
+      withHead.forEach((b, i) => {                                         // her program kendi sayfasında
+        if (i) newPage(title);
+        const fs = pickSize(b) || 6.5;
+        drawRows(layout(b, fs), fs, title + ' (devam)');
+      });
+    }
+  }
+
+  // ── Notlar sayfası: danışana öneriler ──
+  if (String(recs).trim()) {
+    newPage('Notlar');
+    const noteBlocks = String(recs).split('\n').filter(l => !(l.trim() && SEP_RE.test(l)))
+      .map(l => cleanLine(l)).map(l => l ? { k:'item', t:l } : { k:'blank' });
+    let fsN = 6.5;
+    for (let fs = 10; fs >= 6.5; fs -= 0.25) if (totalH(layout(noteBlocks, fs)) + fs * 1.33 * 2 <= AVAIL) { fsN = fs; break; }
+    const hd = tr('Notlar:');
+    page.drawText(hd, { x: CX - fB.widthOfTextAtSize(hd, fsN)/2, y, size: fsN, font: fB, color: cNoteHd });
+    y -= fsN * 1.33 * 2;
+    drawRows(layout(noteBlocks, fsN), fsN, 'Notlar (devam)');
+  }
+
+  const bytes = await doc.save();
+  return { bytes, filename: rawName + ' - ' + dateStr.split('-').reverse().join('.') + '.pdf' };
+}
+
+function _saveBytes(bytes, filename) {
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* Menü sekmesindeki program(lar)ı toplar */
+function collectDietPrograms() {
+  const progs = [{ label: (($('cnt_prog1_label')||{}).value||'').trim() || 'Hafta İçi', menu: ($('written_menu')||{}).value||'' }];
+  if (($('cnt_two_prog')||{}).value === '1') {
+    progs.push({ label: (($('cnt_prog2_label')||{}).value||'').trim() || 'Hafta Sonu', menu: ($('written_menu2')||{}).value||'' });
+  }
+  return progs;
+}
+
+async function downloadDietPDF() {
+  const msgEl = $('diet_pdf_msg');
+  const setMsg = (t,c='text-indigo-600') => { if(msgEl){msgEl.textContent=t; msgEl.className='text-xs font-semibold min-h-[18px] no-print px-1 '+c;} };
+  setMsg('PDF oluşturuluyor...');
   try {
-    const doc = await PDFDocument.create();
-    if (useTr) doc.registerFontkit(window.fontkit);
-    doc.setTitle(name + ' - ' + progName);
-    doc.setAuthor('Uzm. Dyt. Yunus Aksu');
-    doc.setProducer('AKD - Asistan Klinik Diyetisyen');
-
-    const _b64ToU8 = b => { const bin=atob(b); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u; };
-    const bgImg = await doc.embedPng(_b64ToU8(_DIET_BG_B64));
-
-    // ── Fontlar: şablondakiyle aynı aileler (Libre Franklin / Abril Fatface / Lora) ──
-    let fName, fTitle, fR, fB;
-    if (useTr) {
-      fName  = await doc.embedFont(_b64ToU8(_DIET_FONTS_B64.franklin800));
-      fTitle = await doc.embedFont(_b64ToU8(_DIET_FONTS_B64.abril));
-      fR     = await doc.embedFont(_b64ToU8(_DIET_FONTS_B64.lora400));
-      fB     = await doc.embedFont(_b64ToU8(_DIET_FONTS_B64.lora700));
-    } else {
-      fName  = await doc.embedFont(StandardFonts.HelveticaBold);
-      fTitle = await doc.embedFont(StandardFonts.TimesRomanBold);
-      fR     = await doc.embedFont(StandardFonts.TimesRoman);
-      fB     = await doc.embedFont(StandardFonts.TimesRomanBold);
-    }
-
-    // ── Sayfa geometrisi (şablon PDF ile aynı: 595.5 x 842.25 pt) ──
-    const W = 595.5, H = 842.25;
-    const NAME_CX  = 470;   // danışan adı çizgisinin ortası
-    const NAME_MAXW= 205;
-    const TITLE_CX = 378;   // program adı çizgisinin ortası = içerik sütununun ortası
-    const TITLE_MAXW = 200;
-    const CX = TITLE_CX;    // içerik ortalama ekseni
-    const CW = 330;         // içerik satırı azami genişliği
-    const TOP_Y = H - 124;  // ilk içerik satırı (şablondaki gibi başlık çizgisinin altı)
-    const BOTTOM_Y = 112;   // alt bilgi (telefon / logo) bölgesinin üstü
-
-    const fitSize = (font, text, size, maxW, minSize) => {
-      let s = size;
-      while (s > minSize && font.widthOfTextAtSize(text, s) > maxW) s -= 0.5;
-      return s;
-    };
-
-    let page, y;
-    function newPage(title) {
-      page = doc.addPage([W, H]);
-      // Şablon görseli, orijinal PDF'teki konum ve ölçüyle (taşma payı dahil) yerleşir
-      page.drawImage(bgImg, { x: -11.4175, y: H - 851.5709, width: 618.2329, height: 860.5744 });
-      const ns = fitSize(fName, name, 22, NAME_MAXW, 12);
-      page.drawText(name, { x: NAME_CX - fName.widthOfTextAtSize(name, ns)/2, y: H - 41.5, size: ns, font: fName, color: cName });
-      const ts = fitSize(fTitle, title, 22, TITLE_MAXW, 12);
-      page.drawText(title, { x: TITLE_CX - fTitle.widthOfTextAtSize(title, ts)/2, y: H - 86, size: ts, font: fTitle, color: cTitle });
-      y = TOP_Y;
-    }
-
-    // ── Satır sınıflandırma ──
-    const asc = s => trTxt(s).toLowerCase();
-    const MEAL_RE = /^(kahvalti|sabah|ogle|aksam|ara ogun|ara\s*ogun|gece|uyaninca|yatmadan|kusluk|ikindi|antrenman|spor)/;
-    const TIME_RE = /^\d{1,2}[.:]\d{2}/;
-    const isOr = s => /^(ya\s*da|veya|yada)$/i.test(asc(s).replace(/[.:]/g,'').trim());
-
-    // Fontta karşılığı olmayan karakterleri (emoji, kutu çizgisi vb.) at; baştaki madde imini kaldır
-    const _cs = (() => { const a = new Set(fR.getCharacterSet()); return new Set(fB.getCharacterSet().filter(c => a.has(c))); })();
-    const cleanLine = raw => [...tr(raw)].filter(ch => _cs.has(ch.codePointAt(0))).join('')
-      .replace(/^\s*(?:[•·▪◦*]|-(?=\s))\s*/, '').replace(/\s{2,}/g, ' ').trim();
-
-    // Menü metnini çizim bloklarına çevir
-    function buildBlocks(text) {
-      const out = []; let sub = false; let prevBlank = true;
-      for (const raw of String(text||'').split('\n')) {
-        // Ayırıcı çizgiler (━━━, ----, ====) ve madde imleri PDF'e girmesin
-        if (/^[\s\-_=~*.·•─━═▬―]+$/.test(raw)) continue;
-        const t = cleanLine(raw);
-        if (!t) { out.push({ k:'blank' }); sub = false; prevBlank = true; continue; }
-        const a = asc(t);
-        if (MEAL_RE.test(a) || TIME_RE.test(a)) { out.push({ k:'meal', t: t.replace(/:$/,'') }); sub = false; }
-        else if (isOr(t)) { out.push({ k:'or', t: 'ya da' }); }
-        else if (/:$/.test(t) && t.length < 40) { out.push({ k:'sub', t: t.replace(/:$/,'') }); sub = true; }
-        else out.push({ k:'item', t, reg: sub });
-        prevBlank = false;
-      }
-      return out;
-    }
-
-    // Satırı, içindeki "veya / ya da" ince yazılacak şekilde parçalara böl
-    function segs(text, bold) {
-      if (!bold) return [{ s: text, f: fR }];
-      const parts = text.split(/(\s(?:veya|ya da)\s)/i);
-      return parts.filter(p => p).map(p => ({ s: p, f: /^\s(?:veya|ya da)\s$/i.test(p) ? fR : fB }));
-    }
-    function wrapText(text, font, size, maxW) {
-      const out = []; let cur = '';
-      for (const w of text.split(/\s+/)) {
-        const test = cur ? cur + ' ' + w : w;
-        if (cur && font.widthOfTextAtSize(test, size) > maxW) { out.push(cur); cur = w; } else cur = test;
-      }
-      if (cur) out.push(cur);
-      return out;
-    }
-
-    // Blokları verilen punto ile satırlara dönüştür (her satır: parçalar + renk + üst boşluk)
-    function layout(blocks, fs) {
-      const lh = fs * 1.33, rows = [];
-      let first = true;
-      for (const b of blocks) {
-        if (b.k === 'blank') { if (!first) rows.push({ gap: lh * 1.1 }); continue; }
-        if (b.k === 'meal') {
-          if (!first) rows.push({ gap: lh * 1.6 });
-          for (const l of wrapText(b.t, fB, fs, CW)) rows.push({ segs:[{s:l,f:fB}], c:cMeal, h: lh, keep: true });
-        } else if (b.k === 'or') {
-          rows.push({ gap: lh * 0.7 }); rows.push({ segs:[{s:b.t,f:fR}], c:cOr, h: lh }); rows.push({ gap: lh * 0.7 });
-        } else if (b.k === 'sub') {
-          rows.push({ segs:[{s:b.t,f:fB}], c:cSub, h: lh });
-        } else {
-          const bold = !b.reg;
-          for (const l of wrapText(b.t, bold ? fB : fR, fs, CW)) rows.push({ segs: segs(l, bold), c:cTitle, h: lh });
-        }
-        first = false;
-      }
-      // art arda boşlukları birleştir, sondakileri at
-      const clean = [];
-      for (const r of rows) {
-        if (r.gap && clean.length && clean[clean.length-1].gap) { clean[clean.length-1].gap = Math.max(clean[clean.length-1].gap, r.gap); continue; }
-        clean.push(r);
-      }
-      while (clean.length && clean[clean.length-1].gap) clean.pop();
-      return clean;
-    }
-    const totalH = rows => rows.reduce((s, r) => s + (r.gap || r.h), 0);
-
-    // Tek sayfaya sığan en büyük puntoyu seç (10 → 6.5); sığmazsa 6.5 ile sayfalara böl
-    function pickSize(blocks) {
-      const avail = TOP_Y - BOTTOM_Y;
-      for (let fs = 10; fs >= 6.5; fs -= 0.25) if (totalH(layout(blocks, fs)) <= avail) return fs;
-      return 6.5;
-    }
-
-    function drawRows(rows, fs, title) {
-      for (const r of rows) {
-        if (r.gap) { if (y < TOP_Y) y -= r.gap; continue; }   // sayfa başında boşluk bırakma
-        // Öğün başlığı sayfa sonunda tek başına kalmasın: altında en az 2 satır yer yoksa yeni sayfa
-        if (y < BOTTOM_Y || (r.keep && y - r.h * 2 < BOTTOM_Y)) { newPage(title + ' (devam)'); }
-        const w = r.segs.reduce((s, g) => s + g.f.widthOfTextAtSize(g.s, fs), 0);
-        let x = CX - w / 2;
-        for (const g of r.segs) {
-          page.drawText(g.s, { x, y, size: fs, font: g.f, color: r.c });
-          x += g.f.widthOfTextAtSize(g.s, fs);
-        }
-        y -= r.h;
-      }
-    }
-
-    // ── 1. Sayfa: diyet programı ──
-    newPage(progName);
-    const menuBlocks = buildBlocks(menu);
-    if (!menuBlocks.some(b => b.k !== 'blank')) {
-      const t = tr('(Menü girilmemiş - Menü sekmesinden doldurun)');
-      page.drawText(t, { x: CX - fR.widthOfTextAtSize(t, 9)/2, y, size: 9, font: fR, color: cName });
-    } else {
-      const fs = pickSize(menuBlocks);
-      drawRows(layout(menuBlocks, fs), fs, progName);
-    }
-
-    // ── Notlar sayfası ──
-    if (notes.trim()) {
-      newPage('Notlar');
-      const noteBlocks = [{ k:'notehd' }].concat(
-        String(notes).split('\n').filter(l => !/^[\s\-_=~*.·•─━═▬―]+$/.test(l) || !l.trim())
-          .map(l => cleanLine(l)).map(l => l ? { k:'item', t:l } : { k:'blank' }));
-      const fsN = (() => {
-        const avail = TOP_Y - BOTTOM_Y;
-        for (let fs = 10; fs >= 6.5; fs -= 0.25) {
-          if (totalH(layout(noteBlocks.slice(1), fs)) + fs * 1.33 * 2 <= avail) return fs;
-        }
-        return 6.5;
-      })();
-      const hd = tr('Notlar:');
-      page.drawText(hd, { x: CX - fB.widthOfTextAtSize(hd, fsN)/2, y, size: fsN, font: fB, color: cNoteHd });
-      y -= fsN * 1.33 * 2;
-      drawRows(layout(noteBlocks.slice(1), fsN), fsN, 'Notlar');
-    }
-
-    const bytes = await doc.save();
-    const url = URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = rawName.trim() + ' - ' + dateStr.split('-').reverse().join('.') + '.pdf';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const r = await buildDietPDF({
+      name:  ($('cnt_name')||{}).value,
+      date:  ($('cnt_date')||{}).value,
+      title: ($('cnt_program')||{}).value,
+      programs: collectDietPrograms(),
+      recs:  ($('client_recs')||{}).value,
+    });
+    _saveBytes(r.bytes, r.filename);
     setMsg('PDF indirildi.','text-emerald-600');
     setTimeout(()=>setMsg(''), 4000);
   } catch(e) {
@@ -2927,6 +3037,11 @@ function gvNewVisit() {
   $('gv_prog').value = ($('cnt_program')||{}).value || '';
   $('gv_notes').value = '';
   $('gv_menu').value = ($('written_menu')||{}).value || '';
+  const two = ($('cnt_two_prog')||{}).value === '1';
+  $('gv_label1').value = two ? (($('cnt_prog1_label')||{}).value || 'Hafta İçi') : '';
+  $('gv_label2').value = two ? (($('cnt_prog2_label')||{}).value || 'Hafta Sonu') : '';
+  $('gv_menu2').value  = two ? (($('written_menu2')||{}).value || '') : '';
+  $('gv_recs').value   = ($('client_recs')||{}).value || '';
   $('gv_form_msg').textContent = '';
   $('gv_form_card').classList.remove('hidden');
   $('gv_form_card').scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -2944,6 +3059,10 @@ function gvEditVisit(id) {
   $('gv_prog').value = v.prog || '';
   $('gv_notes').value = v.notes || '';
   $('gv_menu').value = v.menu || '';
+  $('gv_label1').value = v.label1 || '';
+  $('gv_label2').value = v.label2 || '';
+  $('gv_menu2').value  = v.menu2 || '';
+  $('gv_recs').value   = v.recs != null ? v.recs : (($('client_recs')||{}).value || '');
   $('gv_form_msg').textContent = '';
   $('gv_form_card').classList.remove('hidden');
   $('gv_form_card').scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -2959,6 +3078,10 @@ function gvSaveVisit() {
     prog:   ($('gv_prog')||{}).value||'',
     notes:  ($('gv_notes')||{}).value||'',
     menu:   ($('gv_menu')||{}).value||'',
+    label1: ($('gv_label1')||{}).value||'',
+    label2: ($('gv_label2')||{}).value||'',
+    menu2:  ($('gv_menu2')||{}).value||'',
+    recs:   ($('gv_recs')||{}).value||'',
   };
   if (!v.date) { const m=$('gv_form_msg'); if(m){m.textContent='Tarih zorunludur.';m.className='text-xs font-semibold text-red-500 min-h-[16px]';} return; }
   const visits = gvLoadAll().filter(x => x.id !== v.id);
@@ -2996,6 +3119,10 @@ async function gvDownloadVisitPDF() {
     prog:   ($('gv_prog')||{}).value||'',
     notes:  ($('gv_notes')||{}).value||'',
     menu:   ($('gv_menu')||{}).value||'',
+    label1: ($('gv_label1')||{}).value||'',
+    label2: ($('gv_label2')||{}).value||'',
+    menu2:  ($('gv_menu2')||{}).value||'',
+    recs:   ($('gv_recs')||{}).value||'',
   };
   await gvGeneratePDF(v);
 }
@@ -3003,175 +3130,21 @@ async function gvDownloadVisitPDF() {
 async function gvGeneratePDF(v) {
   const msgEl = $('gv_form_msg');
   const setMsg = (t,c='text-indigo-600') => { if(msgEl){msgEl.textContent=t; msgEl.className='text-xs font-semibold min-h-[16px] '+c;} };
-  setMsg('PDF olusturuluyor...');
-
-  let PDFLib; try{PDFLib=window.PDFLib;}catch(e){}
-  if (!PDFLib||!PDFLib.PDFDocument) { setMsg('PDF kutuphanesi yuklenemedi.','text-red-500'); return; }
-  const {PDFDocument,rgb,StandardFonts} = PDFLib;
-  const _fb = await _loadTrFontBytes();
-  const tr = s => _fb ? (s == null ? '' : String(s)) : trTxt(s);
-
-  const rawClientName = ($('cnt_name')||{}).value||'Danisan';
-  const clientName = tr(rawClientName);
-  const progName   = tr(v.prog || 'Takip Gorusmesi');
-  const dateStr    = v.date || new Date().toISOString().slice(0,10);
-  const wt         = v.weight || '';
-  const kcal       = v.kcal || '-';
-  const menu       = v.menu || '';
-  const notes      = v.notes || '';
-
-  const cDarkGreen = rgb(0.106, 0.400, 0.251);
-  const cOrange    = rgb(0.882, 0.600, 0.133);
-  const cPurple    = rgb(0.420, 0.286, 0.584);
-  const cGray      = rgb(0.420, 0.420, 0.420);
-  const cDark      = rgb(0.12,  0.12,  0.12 );
-  const cMid       = rgb(0.50,  0.50,  0.50 );
-  const cLine      = rgb(0.80,  0.80,  0.80 );
-  const sideColors = [
-    rgb(0.671,0.859,0.600),rgb(0.996,0.859,0.600),
-    rgb(0.780,0.722,0.886),rgb(0.996,0.973,0.651),
-    rgb(0.671,0.859,0.600),rgb(0.996,0.859,0.600),
-    rgb(0.780,0.722,0.886),rgb(0.996,0.973,0.651),
-    rgb(0.671,0.859,0.600),rgb(0.996,0.859,0.600),
-    rgb(0.780,0.722,0.886),rgb(0.996,0.973,0.651),
-    rgb(0.671,0.859,0.600),rgb(0.996,0.859,0.600),
-    rgb(0.780,0.722,0.886),rgb(0.996,0.973,0.651),
-    rgb(0.671,0.859,0.600),rgb(0.996,0.859,0.600),
-  ];
-
+  setMsg('PDF oluşturuluyor...');
   try {
-    const doc = await PDFDocument.create();
-    if (_fb && window.fontkit) doc.registerFontkit(window.fontkit);
-    doc.setTitle(clientName + ' - ' + progName + ' - ' + dateStr);
-    doc.setAuthor('Uzm. Dyt. Yunus Aksu');
-    doc.setProducer('AKD - Asistan Klinik Diyetisyen');
-
-    const W=595.28, H=841.89, SIDEBAR=58, MX=SIDEBAR+14, MY=42, CW=W-MX-22;
-    let fB, fR;
-    if (_fb) {
-      fR = await doc.embedFont(_fb.rBytes, { subset: false });
-      fB = await doc.embedFont(_fb.bBytes, { subset: false });
-    } else {
-      fB = await doc.embedFont(StandardFonts.HelveticaBold);
-      fR = await doc.embedFont(StandardFonts.Helvetica);
-    }
-
-    function wrap(text, font, size, maxW) {
-      const out=[];
-      for (const raw of String(text||'').split('\n')) {
-        if (!raw.trim()){out.push('');continue;}
-        const words=raw.split(' '); let cur='';
-        for (const w of words){
-          const test=cur?cur+' '+w:w;
-          if(font.widthOfTextAtSize(test,size)>maxW&&cur){out.push(cur);cur=w;}
-          else cur=test;
-        }
-        if(cur)out.push(cur);
-      }
-      return out;
-    }
-
-    function drawSidebar(pg) {
-      const tileW=SIDEBAR/2, tileH=26;
-      const total=Math.ceil(H/tileH)*2;
-      for(let i=0;i<total;i++){
-        const col=i%2, row=Math.floor(i/2);
-        const tx=col*tileW, ty=H-(row+1)*tileH;
-        if(ty<-tileH)break;
-        pg.drawRectangle({x:tx,y:ty,width:tileW,height:tileH,color:sideColors[i%sideColors.length]});
-      }
-      pg.drawLine({start:{x:SIDEBAR,y:0},end:{x:SIDEBAR,y:H},thickness:0.5,color:rgb(0.85,0.85,0.85)});
-    }
-
-    function drawFooter(pg) {
-      pg.drawLine({start:{x:MX,y:MY+10},end:{x:W-22,y:MY+10},thickness:0.4,color:cLine});
-      const foot1='+90 534 544 05 06   @diyetisyenyunusaksu   dyt.yunusaksu@gmail.com';
-      const fw1=fR.widthOfTextAtSize(foot1,6.5);
-      pg.drawText(foot1,{x:MX+CW/2-fw1/2,y:MY,size:6.5,font:fR,color:cMid});
-      const fw2=fB.widthOfTextAtSize('Uzm. Dyt. Yunus Aksu',7);
-      pg.drawText('Uzm. Dyt. Yunus Aksu',{x:MX+CW/2-fw2/2,y:MY-11,size:7,font:fB,color:cMid});
-    }
-
-    let page, y;
-    function newPage(isFirst=false) {
-      page=doc.addPage([W,H]);
-      drawSidebar(page);
-      drawFooter(page);
-      const topY=H-24;
-      if(isFirst){
-        page.drawText(progName,{x:MX,y:topY-4,size:15,font:fB,color:cDarkGreen});
-        const nameLabel=clientName+(wt?'  |  '+wt+' kg':'')+(kcal&&kcal!=='-'?'  |  '+kcal+' kcal':'');
-        const nw=fR.widthOfTextAtSize(nameLabel,8.5);
-        page.drawText(nameLabel,{x:W-22-nw,y:topY,size:8.5,font:fR,color:cGray});
-        const dw=fR.widthOfTextAtSize(tr(dateStr),8);
-        page.drawText(tr(dateStr),{x:W-22-dw,y:topY-12,size:8,font:fR,color:cGray});
-        page.drawLine({start:{x:MX,y:topY-20},end:{x:W-22,y:topY-20},thickness:1.0,color:cDarkGreen});
-      } else {
-        page.drawText(progName+' (devam)',{x:MX,y:topY,size:9,font:fR,color:cGray});
-        page.drawLine({start:{x:MX,y:topY-10},end:{x:W-22,y:topY-10},thickness:0.4,color:cLine});
-      }
-      y=isFirst?topY-36:topY-22;
-    }
-
-    newPage(true);
-
-    // Görüşme notu kutusu
-    if(notes.trim()){
-      const noteWrapped=wrap(tr(notes),fR,9,CW-20);
-      const boxH=noteWrapped.length*12+22;
-      page.drawRectangle({x:MX,y:y-boxH,width:CW,height:boxH,color:rgb(1.0,0.97,0.88),borderColor:cOrange,borderWidth:0.6});
-      page.drawText('GORUSME NOTU',{x:MX+8,y:y-11,size:7,font:fB,color:cOrange});
-      let ny=y-24;
-      for(const nl of noteWrapped){
-        if(!nl.trim()){ny-=5;continue;}
-        page.drawText(nl,{x:MX+8,y:ny,size:9,font:fR,color:cDark});
-        ny-=12;
-      }
-      y-=boxH+10;
-    }
-
-    // Diyet planı
-    if(menu.trim()){
-      if(y<MY+80) newPage(false);
-      page.drawLine({start:{x:MX,y:y+2},end:{x:W-22,y:y+2},thickness:0.4,color:cLine});
-      y-=10;
-      const rawLines=menu.split('\n');
-      for(let li=0;li<rawLines.length;li++){
-        const line=tr(rawLines[li]);
-        const trimmed=line.trim();
-        if(!trimmed){y-=7;continue;}
-        const isMealTime=/^(Kahvalti|Sabah|Ogle|Aksam|Ara Ogun|Ara ogun|Gece|Uyaninca|Yatmadan|Kusluk|\d{1,2}[.:]\d{2})/i.test(trimmed);
-        const isYaDa=/^ya\s*da$/i.test(trimmed);
-        if(y<MY+55) newPage(false);
-        if(isMealTime){
-          if(li>0)y-=5;
-          page.drawText(line,{x:MX,y,size:11,font:fB,color:cOrange});
-          y-=17;
-        } else if(isYaDa){
-          const yaW=fR.widthOfTextAtSize('ya da',9);
-          page.drawText('ya da',{x:MX+CW/2-yaW/2,y,size:9,font:fR,color:cPurple});
-          y-=13;
-        } else {
-          const wrapped=wrap(line,fR,9,CW-20);
-          for(const wl of wrapped){
-            if(!wl.trim()){y-=5;continue;}
-            if(y<MY+55) newPage(false);
-            const lw=fR.widthOfTextAtSize(wl,9);
-            page.drawText(wl,{x:MX+CW/2-lw/2,y,size:9,font:fR,color:cDark});
-            y-=13;
-          }
-        }
-      }
-    }
-
-    const bytes=await doc.save();
-    const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
-    const a=document.createElement('a');
-    a.href=url;
-    a.download=clientName.replace(/\s+/g,'_')+'_'+tr(progName).replace(/\s+/g,'_')+'_'+dateStr+'.pdf';
-    a.click(); URL.revokeObjectURL(url);
+    // Görüşmedeki diyet, ana diyet PDF'iyle aynı şablonla basılır
+    const programs = [{ label: v.label1 || 'Hafta İçi', menu: v.menu || '' }];
+    if (String(v.menu2||'').trim()) programs.push({ label: v.label2 || 'Hafta Sonu', menu: v.menu2 });
+    const r = await buildDietPDF({
+      name:  ($('cnt_name')||{}).value,
+      date:  v.date,
+      title: v.prog || ($('cnt_program')||{}).value,
+      programs,
+      recs:  v.recs != null ? v.recs : (($('client_recs')||{}).value || ''),
+    });
+    _saveBytes(r.bytes, r.filename);
     setMsg('PDF indirildi.','text-emerald-600');
-    setTimeout(()=>setMsg(''),4000);
+    setTimeout(()=>setMsg(''), 4000);
   } catch(e) {
     setMsg('Hata: '+e.message,'text-red-500');
     console.error(e);
@@ -3188,71 +3161,71 @@ async function fetchGoogleForm() {
   if (listEl) { listEl.innerHTML=''; listEl.classList.add('hidden'); }
   showGFormStatus('info','Yanıtlar çekiliyor...');
 
-  // Google Apps Script URL'leri redirect kullandığından fetch+cors güvenilmez.
-  // JSONP yöntemi her zaman çalışır — Apps Script'in callback parametresini desteklemesi gerekir.
-  const baseUrl = url.trim() + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
-  const jsonpUrl = baseUrl + '&callback=_gfcb';
-
-  // Önceki denemeden kalan script tag'lerini temizle
-  document.querySelectorAll('script[data-gform]').forEach(s => s.remove());
+  // Google Apps Script URL'leri redirect kullandığından fetch+cors güvenilmez → JSONP.
+  // Apps Script yavaş yanıt verebiliyor (ölçülen: 11-13 sn). Bu yüzden:
+  //  • toplam 60 sn beklenir, geçen süre ekranda gösterilir
+  //  • 20 sn içinde yanıt gelmezse paralel ikinci istek atılır; hangisi önce gelirse o kullanılır
+  //  • her istek kendi callback adını kullanır, geç gelen yanıtlar hata üretmez
+  const TOTAL_MS = 60000, RETRY_AFTER_MS = 20000;
+  const runId = Date.now();
+  window._gfActiveRun = runId;
+  const scripts = [];
 
   try {
     await new Promise((resolve, reject) => {
-      const TIMEOUT_MS = 15000;
-      const timer = setTimeout(() => {
-        cleanup();
-        reject(new Error(
-          'Zaman aşımı (15sn)\n\n' +
-          'Kontrol edin:\n' +
-          '1️⃣ Apps Script kodu aşağıdaki şekilde olmalı\n' +
-          '2️⃣ Deploy → "Execute as: Me" + "Who has access: Anyone"\n' +
-          '3️⃣ Her kod değişlikliğinde „New deployment“ yapın\n' +
-          '4️⃣ Yeni deployment URL\'sini buraya yapıştırın'
-        ));
-      }, TIMEOUT_MS);
+      let done = false;
+      const started = Date.now();
+      const ticker = setInterval(() => {
+        const sec = Math.round((Date.now() - started) / 1000);
+        if (sec >= 5 && window._gfActiveRun === runId) showGFormStatus('info', `Yanıtlar çekiliyor... (${sec} sn)\nGoogle bazen 10-20 sn'de yanıt veriyor, lütfen bekleyin.`);
+      }, 1000);
+      const finish = (fn) => { if (done) return; done = true; clearInterval(ticker); clearTimeout(retryT); clearTimeout(totalT); fn(); };
 
-      function cleanup() {
-        clearTimeout(timer);
-        if (window._gfcb) delete window._gfcb;
-        document.querySelectorAll('script[data-gform]').forEach(s => s.remove());
-      }
-
-      window._gfcb = (data) => {
-        cleanup();
-        if (data && data.error) {
-          reject(new Error('Apps Script hatası: ' + data.error));
-          return;
-        }
+      const handle = (data) => finish(() => {
+        if (window._gfActiveRun !== runId) return resolve();   // daha yeni bir "Çek" başlatılmış
+        if (data && data.error) return reject(new Error('Apps Script hatası: ' + data.error));
         if (data && Array.isArray(data.rows)) {
           renderGFormList(data.rows);
           showGFormStatus('success', data.rows.length + ' yanıt yüklendi.');
         } else if (data && typeof data === 'object') {
           fillFromGForm(data);
           showGFormStatus('success', 'Veriler dolduruldu.');
-        } else {
-          reject(new Error('Beklenmeyen veri formatı'));
-          return;
-        }
+        } else return reject(new Error('Beklenmeyen veri formatı'));
         resolve();
+      });
+
+      let failed = 0, sent = 0;
+      const send = () => {
+        const cb = '_gfcb_' + runId + '_' + (sent++);
+        window[cb] = (data) => { window[cb] = () => {}; handle(data); };   // geç gelen yanıtlar için zararsız kalır
+        const s = document.createElement('script');
+        s.setAttribute('data-gform', '1');
+        s.src = url.trim() + (url.includes('?') ? '&' : '?') + 't=' + Date.now() + '&callback=' + cb;
+        s.onerror = () => {
+          if (++failed < sent) return;   // diğer istek hâlâ bekliyor
+          finish(() => reject(new Error(
+            'Script yüklenemedi\n\n' +
+            'İnternet bağlantınızı kontrol edin. Sorun sürerse Apps Script\n' +
+            'henüz deploy edilmemiş ya da URL yanlış kopyalanmış olabilir.\n\n' +
+            'URL örneği:\nhttps://script.google.com/macros/s/AKfy.../exec')));
+        };
+        scripts.push(s);
+        document.head.appendChild(s);
       };
 
-      const s = document.createElement('script');
-      s.setAttribute('data-gform', '1');
-      s.src = jsonpUrl;
-      s.onerror = () => {
-        cleanup();
-        reject(new Error(
-          'Script yüklenemedi\n\n' +
-          'En sık neden: Apps Script henüz deploy edilmedi\n' +
-          'ya da URL yanlış kopyalandı.\n\n' +
-          'URL örneği:\n' +
-          'https://script.google.com/macros/s/AKfy.../exec'
-        ));
-      };
-      document.head.appendChild(s);
+      const retryT = setTimeout(send, RETRY_AFTER_MS);
+      const totalT = setTimeout(() => finish(() => reject(new Error(
+        'Google 60 sn içinde yanıt vermedi.\n\n' +
+        'Genelde geçici bir yavaşlıktır — birkaç saniye sonra tekrar "Çek"e basın.\n' +
+        'Sürekli tekrarlanırsa kontrol edin:\n' +
+        '1️⃣ Deploy → "Execute as: Me" + "Who has access: Anyone"\n' +
+        '2️⃣ Kod değiştiyse „New deployment“ yapıp yeni URL\'yi buraya yapıştırın'))), TOTAL_MS);
+      send();
     });
   } catch (err) {
     showGFormStatus('error', err.message);
+  } finally {
+    scripts.forEach(s => s.remove());
   }
 }
 
@@ -4289,6 +4262,219 @@ function renderTanitaRecs(d) {
       </div>
     </div>`;
 }
+</script>
+<script>
+/* ════════════════════════════════════════════════════
+   SAYFA GEZİNTİSİ: her sekmenin altında Geri / İleri
+════════════════════════════════════════════════════ */
+const TAB_ORDER = [
+  ['cl','1. Danışan'], ['en','2. Enerji'], ['tn','3. Tanita'], ['dg','4. Menü'],
+  ['rp','5. Rapor/PDF'], ['sp','6. Supp. Protokol'], ['gv','7. Görüşmeler']
+];
+(function buildTabPager() {
+  TAB_ORDER.forEach(([id], i) => {
+    const sec = $('tab-' + id); if (!sec) return;
+    const prev = TAB_ORDER[i-1], next = TAB_ORDER[i+1];
+    const div = document.createElement('div');
+    div.className = 'no-print flex justify-between items-center gap-3 pt-1';
+    div.innerHTML =
+      (prev ? `<button type="button" onclick="switchTab('${prev[0]}')" class="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition flex items-center gap-2"><i class="fa-solid fa-arrow-left text-xs"></i> ${prev[1]}</button>` : '<span></span>') +
+      (next ? `<button type="button" onclick="switchTab('${next[0]}')" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition flex items-center gap-2 shadow-sm">İleri: ${next[1]} <i class="fa-solid fa-arrow-right text-xs"></i></button>` : '<span></span>');
+    sec.appendChild(div);
+  });
+})();
+
+/* ════════════════════════════════════════════════════
+   HEDEF → ENERJİ HEDEFİ (otomatik, sonra elle düzeltilebilir)
+════════════════════════════════════════════════════ */
+const GOAL_TO_KCAL = { 'Kilo Verme':'-500', 'Kilo Koruma':'0', 'Kilo Alma':'500', 'Kas Kütlesi Artırma':'250', 'Sağlıklı Beslenme':'0' };
+function detectGoalType(text) {
+  const t = trTxt(text || '').toLowerCase();
+  if (!t.trim()) return '';
+  if (/kilo\s*al|kilo\s*kazan|kilo\s*almak|zayifim|cok\s*zayif|kilo\s*alam/.test(t)) return 'Kilo Alma';
+  if (/kas\s*(kutle|kitle|yap|kazan|art)|hipertrofi/.test(t)) return 'Kas Kütlesi Artırma';
+  if (/kilo\s*ver|zayifla|incel|kilo\s*kayb|yag\s*yak|kilomu\s*azalt/.test(t)) return 'Kilo Verme';
+  if (/koru|korumak|sabit/.test(t)) return 'Kilo Koruma';
+  if (/saglikli|kan\s*deger|kolesterol|seker/.test(t)) return 'Sağlıklı Beslenme';
+  return '';
+}
+// fromText=true: seçim boşsa hedef metninden / başvuru nedeninden tahmin et
+function applyGoalToEnergy(fromText) {
+  const sel = $('cnt_goal_type'); if (!sel) return;
+  if (!sel.value && fromText) {
+    const g = detectGoalType((($('cnt_goal')||{}).value||'') + ' ' + (($('cnt_complaint')||{}).value||''));
+    if (g) sel.value = g;
+  }
+  const kcal = GOAL_TO_KCAL[sel.value];
+  const eg = $('en_goal');
+  if (kcal == null || !eg) return;
+  if (eg.value === kcal) return;
+  eg.value = kcal;
+  const hint = $('en_goal_hint');
+  if (hint) hint.textContent = '↳ Danışanın hedefinden otomatik seçildi (' + sel.value + '). Gerekirse değiştirebilirsiniz.';
+  try { calcEnergy(); } catch(e) {}
+}
+// Google Form'dan doldurulunca hedefi de enerjiye aktar
+if (typeof fillFromGForm === 'function') {
+  const _fillFromGForm = fillFromGForm;
+  fillFromGForm = function(d) { _fillFromGForm(d); applyGoalToEnergy(true); };
+}
+
+/* ════════════════════════════════════════════════════
+   İKİ PROGRAM (ör. Hafta İçi / Hafta Sonu)
+════════════════════════════════════════════════════ */
+function syncTwoProgUI() {
+  const on = ($('cnt_two_prog')||{}).value === '1';
+  ['prog2_wrap','prog1_label_wrap'].forEach(id => { const el = $(id); if (el) el.classList.toggle('hidden', !on); });
+  const b = $('btn_two_prog'); if (b) b.classList.toggle('hidden', on);
+}
+function toggleTwoProg() {
+  const h = $('cnt_two_prog'); if (!h) return;
+  if (h.value === '1') {
+    if (String(($('written_menu2')||{}).value||'').trim() && !confirm('İkinci program kaldırılsın mı? Yazdığınız menü silinecek.')) return;
+    h.value = ''; $('written_menu2').value = '';
+  } else {
+    h.value = '1';
+    if (!$('cnt_prog1_label').value) $('cnt_prog1_label').value = 'Hafta İçi';
+    if (!$('cnt_prog2_label').value) $('cnt_prog2_label').value = 'Hafta Sonu';
+  }
+  syncTwoProgUI();
+}
+
+/* ════════════════════════════════════════════════════
+   HAZIR ÖNERİLER (düzenlenebilir, tarayıcıda saklanır)
+════════════════════════════════════════════════════ */
+const REC_DEFAULTS = [
+  'İstediğin her zaman bana yazabilirsin.',
+  'Günde en az 2-2.5 L su içtiğinden emin ol.',
+  'Çay ve kahveyi yemekten en az 1 saat sonra iç.',
+  'Öğün atlamamaya özen göster.',
+  'Yemeklerini yavaş ve iyice çiğneyerek ye.',
+  'Haftada en az 150 dakika tempolu yürüyüş yap.',
+  'Uyku düzenine dikkat et, 7-8 saat uyumaya çalış.',
+];
+function getRecPresets() {
+  try { const a = JSON.parse(localStorage.getItem('akd_rec_presets') || 'null'); if (Array.isArray(a)) return a; } catch(e) {}
+  return REC_DEFAULTS.slice();
+}
+function renderRecPresets() {
+  const box = $('rec_presets'); if (!box) return;
+  const esc = t => t.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  box.innerHTML = getRecPresets().map((r, i) =>
+    `<button type="button" onclick="addRecPreset(${i})" class="text-left px-2 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-lg text-[11px] hover:bg-rose-100 transition">+ ${esc(r)}</button>`).join('');
+}
+function addRecPreset(i) {
+  const r = getRecPresets()[i], ta = $('client_recs'); if (!r || !ta) return;
+  const lines = ta.value.split('\n').map(l => l.trim());
+  if (lines.includes(r)) return;
+  ta.value = (ta.value.trim() ? ta.value.replace(/\s+$/, '') + '\n' : '') + r;
+}
+function toggleRecPresetEditor() {
+  const ed = $('rec_presets_editor'); if (!ed) return;
+  const opening = ed.classList.contains('hidden');
+  ed.classList.toggle('hidden');
+  if (opening) $('rec_presets_text').value = getRecPresets().join('\n');
+}
+function saveRecPresets() {
+  const arr = $('rec_presets_text').value.split('\n').map(l => l.trim()).filter(Boolean);
+  try { localStorage.setItem('akd_rec_presets', JSON.stringify(arr)); } catch(e) {}
+  renderRecPresets(); $('rec_presets_editor').classList.add('hidden');
+}
+function resetRecPresets() {
+  try { localStorage.removeItem('akd_rec_presets'); } catch(e) {}
+  $('rec_presets_text').value = REC_DEFAULTS.join('\n'); renderRecPresets();
+}
+
+/* ════════════════════════════════════════════════════
+   GOOGLE MEET RANDEVULARI (tüm danışanlar, tarayıcıda saklanır)
+════════════════════════════════════════════════════ */
+const _localDay = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+function meetLoad() { try { return JSON.parse(localStorage.getItem('akd_meets') || '[]'); } catch(e) { return []; } }
+function meetSaveAll(a) { localStorage.setItem('akd_meets', JSON.stringify(a)); }
+function meetMsg(t, c) { const m = $('meet_msg'); if (m) { m.textContent = t; m.className = 'text-xs font-semibold min-h-[14px] ' + (c || 'text-blue-600'); } }
+function meetFmtDate(d) {
+  try { return new Date(d + 'T00:00').toLocaleDateString('tr-TR', { day:'numeric', month:'long', year:'numeric', weekday:'long' }); } catch(e) { return d; }
+}
+function meetPhone(p) {
+  let d = String(p || '').replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.startsWith('0')) d = '90' + d.slice(1);
+  if (d.length === 10 && d.startsWith('5')) d = '90' + d;
+  return d;
+}
+function meetAdd() {
+  const client = (($('cnt_name')||{}).value || '').trim();
+  const date = $('meet_date').value, time = $('meet_time').value, link = $('meet_link').value.trim();
+  if (!client) return meetMsg('Önce 1. sayfada danışan seçin veya adını girin.', 'text-red-500');
+  if (!date || !time) return meetMsg('Tarih ve saat gerekli.', 'text-red-500');
+  if (link && !/^https:\/\/meet\.google\.com\//.test(link)) return meetMsg('Link "https://meet.google.com/..." ile başlamalı.', 'text-red-500');
+  const a = meetLoad();
+  a.push({ id: 'm_' + Date.now(), client, phone: ($('cnt_phone')||{}).value || '', date, time, link, note: $('meet_note').value.trim() });
+  meetSaveAll(a);
+  $('meet_link').value = ''; $('meet_note').value = '';
+  meetMsg('Randevu eklendi.', 'text-emerald-600'); setTimeout(() => meetMsg(''), 2500);
+  meetRender();
+}
+function meetDelete(id) {
+  if (!confirm('Bu randevu silinsin mi?')) return;
+  meetSaveAll(meetLoad().filter(m => m.id !== id)); meetRender();
+}
+function meetText(m) {
+  const first = m.client.split(' ')[0];
+  return `Merhaba ${first}, ${meetFmtDate(m.date)} saat ${m.time.replace(':', '.')} online görüşmemiz için Google Meet bağlantınız:\n${m.link || '(link eklenecek)'}\n\nGörüşmek üzere,\nDyt. Yunus Aksu`;
+}
+function meetCopy(id) {
+  const m = meetLoad().find(x => x.id === id); if (!m) return;
+  navigator.clipboard.writeText(meetText(m)).then(() => meetMsg('Mesaj panoya kopyalandı.', 'text-emerald-600'), () => meetMsg('Kopyalanamadı.', 'text-red-500'));
+  setTimeout(() => meetMsg(''), 2500);
+}
+function meetCalUrl(m) {
+  const st = (m.date + 'T' + m.time).replace(/[-:]/g, '') + '00';
+  const end = new Date(new Date(m.date + 'T' + m.time).getTime() + 45 * 60000);
+  const p = n => String(n).padStart(2, '0');
+  const en = `${end.getFullYear()}${p(end.getMonth()+1)}${p(end.getDate())}T${p(end.getHours())}${p(end.getMinutes())}00`;
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('Online görüşme: ' + m.client) +
+    '&dates=' + st + '/' + en + '&ctz=Europe/Istanbul&details=' + encodeURIComponent((m.link ? 'Google Meet: ' + m.link + '\n' : '') + (m.note || ''));
+}
+function meetCard(m, showClient) {
+  const esc = t => String(t || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const now = new Date(), at = new Date(m.date + 'T' + m.time);
+  const past = at.getTime() + 60 * 60000 < now.getTime();
+  const soon = !past && at.getTime() - now.getTime() < 15 * 60000;
+  const today = m.date === _localDay(now);
+  const wa = meetPhone(m.phone);
+  return `<div class="border rounded-xl p-3 ${past ? 'bg-slate-50 border-slate-100 opacity-60' : today ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200'} flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div class="text-xs">
+      <p class="font-bold text-slate-800">${showClient ? esc(m.client) + ' · ' : ''}${esc(meetFmtDate(m.date))} · ${esc(m.time.replace(':', '.'))}${today && !past ? ' <span class="ml-1 px-1.5 py-0.5 bg-blue-600 text-white rounded text-[10px]">BUGÜN</span>' : ''}${past ? ' <span class="text-slate-400 font-normal">(geçti)</span>' : ''}</p>
+      ${m.note ? `<p class="text-slate-500">${esc(m.note)}</p>` : ''}
+      ${m.link ? `<p class="text-blue-600 break-all">${esc(m.link)}</p>` : '<p class="text-amber-600">Meet linki eklenmedi</p>'}
+    </div>
+    <div class="flex flex-wrap gap-1.5 shrink-0">
+      ${m.link ? `<a href="${esc(m.link)}" target="_blank" rel="noopener" class="px-2.5 py-1.5 ${soon || today ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700'} rounded-lg text-xs font-bold hover:opacity-90"><i class="fa-solid fa-video"></i> Katıl</a>` : ''}
+      ${wa ? `<a href="https://wa.me/${wa}?text=${encodeURIComponent(meetText(m))}" target="_blank" rel="noopener" class="px-2.5 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-semibold hover:bg-emerald-100"><i class="fa-brands fa-whatsapp"></i> Gönder</a>` : ''}
+      <button type="button" onclick="meetCopy('${m.id}')" class="px-2.5 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-200" title="Mesajı kopyala"><i class="fa-regular fa-copy"></i></button>
+      <a href="${meetCalUrl(m)}" target="_blank" rel="noopener" class="px-2.5 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-200" title="Google Takvim'e ekle"><i class="fa-regular fa-calendar-plus"></i></a>
+      <button type="button" onclick="meetDelete('${m.id}')" class="px-2.5 py-1.5 bg-red-50 text-red-500 rounded-lg text-xs hover:bg-red-100" title="Sil"><i class="fa-solid fa-trash"></i></button>
+    </div>
+  </div>`;
+}
+function meetRender() {
+  const list = $('meet_list'), all = $('meet_all');
+  if ($('meet_date') && !$('meet_date').value) $('meet_date').value = _localDay();
+  const items = meetLoad().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  const client = (($('cnt_name')||{}).value || '').trim();
+  if (list) {
+    const mine = items.filter(m => m.client === client);
+    list.innerHTML = mine.length ? mine.map(m => meetCard(m, false)).join('')
+      : `<p class="text-xs text-slate-400 italic">${client ? 'Bu danışan için randevu yok.' : 'Danışan seçilmedi.'}</p>`;
+  }
+  if (all) {
+    const cutoff = Date.now() - 60 * 60000;
+    const up = items.filter(m => new Date(m.date + 'T' + m.time).getTime() > cutoff);
+    all.innerHTML = up.length ? up.map(m => meetCard(m, true)).join('') : '<p class="text-xs text-slate-400 italic">Yaklaşan randevu yok.</p>';
+  }
+}
+
 </script>
 </body>
 </html>
