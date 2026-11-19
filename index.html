@@ -37,6 +37,8 @@
   :root { --sat: env(safe-area-inset-top,0px); --sab: env(safe-area-inset-bottom,0px); }
   .pt-safe { padding-top: var(--sat); }
   .pb-safe { padding-bottom: var(--sab); }
+  #client_selector option { background-color: #3730a3; color: #fff; }
+  #client_selector option:checked { background-color: #6d28d9; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -52,7 +54,7 @@
       <p id="client_badge_name" class="text-white font-bold text-sm"></p>
       <p id="client_badge_detail" class="text-indigo-200 text-[11px]"></p>
     </div>
-    <select id="client_selector" onchange="loadClient()" class="bg-white/15 text-white text-xs border border-white/30 rounded-xl px-3 py-1.5 outline-none cursor-pointer">
+    <select id="client_selector" onchange="loadClient()" class="bg-indigo-800 text-white text-xs border border-white/30 rounded-xl px-3 py-1.5 outline-none cursor-pointer">
       <option value="">— Danışan Seç —</option>
     </select>
     <button onclick="newClient()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-xl font-semibold border border-white/30 transition" title="Yeni danışan">
