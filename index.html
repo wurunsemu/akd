@@ -1686,46 +1686,26 @@ function renderSuppClinRecs() {
 
 /* Türkçe → Latin (pdf-lib StandardFonts sadece WinAnsi destekler) */
 function trTxt(s) {
-  if (!s) return ‘’;
+  if (!s) return '';
   return String(s)
-    // Türkçe harfler — Unicode escape ile kesin eşleşme
-    .replace(/ş/g,’s’)  // ş
-    .replace(/Ş/g,’S’)  // Ş
-    .replace(/ğ/g,’g’)  // ğ
-    .replace(/Ğ/g,’G’)  // Ğ
-    .replace(/ı/g,’i’)  // ı (dotless i)
-    .replace(/İ/g,’I’)  // İ (dotted I)
-    .replace(/ö/g,’o’)  // ö
-    .replace(/Ö/g,’O’)  // Ö
-    .replace(/ü/g,’u’)  // ü
-    .replace(/Ü/g,’U’)  // Ü
-    .replace(/ç/g,’c’)  // ç
-    .replace(/Ç/g,’C’)  // Ç
-    .replace(/â/g,’a’)  // â
-    .replace(/Â/g,’A’)  // Â
-    .replace(/î/g,’i’)  // î
-    .replace(/Î/g,’I’)  // Î
-    .replace(/û/g,’u’)  // û
-    .replace(/Û/g,’U’)  // Û
-    // Özel noktalama
-    .replace(/—/g,’-’)   // em dash —
-    .replace(/–/g,’-’)   // en dash –
-    .replace(/→/g,’->’)  // →
-    .replace(/•/g,’*’)   // bullet •
-    .replace(/½/g,’1/2’) // ½
-    .replace(/¼/g,’1/4’) // ¼
-    .replace(/¾/g,’3/4’) // ¾
-    .replace(/×/g,’x’)   // ×
-    .replace(/‘/g,”’”)   // ‘
-    .replace(/’/g,”’”)   // ‘
-    .replace(/“/g,’”’)   // “
-    .replace(/”/g,’”’)   // “
-    .replace(/…/g,’...’)  // …
-    .replace(/é/g,’e’)   // é
-    .replace(/à/g,’a’)   // à
-    .replace(/è/g,’e’)   // è
-    // Son kale: kalan non-ASCII karakterleri boşluğa çevir
-    .replace(/[^\x20-\x7E]/g, ‘ ‘);
+    .replace(/\u015F/g,'s').replace(/\u015E/g,'S')
+    .replace(/\u011F/g,'g').replace(/\u011E/g,'G')
+    .replace(/\u0131/g,'i').replace(/\u0130/g,'I')
+    .replace(/\u00F6/g,'o').replace(/\u00D6/g,'O')
+    .replace(/\u00FC/g,'u').replace(/\u00DC/g,'U')
+    .replace(/\u00E7/g,'c').replace(/\u00C7/g,'C')
+    .replace(/\u00E2/g,'a').replace(/\u00C2/g,'A')
+    .replace(/\u00EE/g,'i').replace(/\u00CE/g,'I')
+    .replace(/\u00FB/g,'u').replace(/\u00DB/g,'U')
+    .replace(/\u2014/g,'-').replace(/\u2013/g,'-')
+    .replace(/\u2192/g,'->').replace(/\u2022/g,'*')
+    .replace(/\u00BD/g,'1/2').replace(/\u00BC/g,'1/4').replace(/\u00BE/g,'3/4')
+    .replace(/\u00D7/g,'x')
+    .replace(/\u2018/g,"'").replace(/\u2019/g,"'")
+    .replace(/\u201C/g,'"').replace(/\u201D/g,'"')
+    .replace(/\u2026/g,'...')
+    .replace(/\u00E9/g,'e').replace(/\u00E0/g,'a').replace(/\u00E8/g,'e')
+    .replace(/[^\x20-\x7E]/g,' ');
 }
 
 async function suppGenPDF() {
@@ -3167,7 +3147,7 @@ async function fetchGoogleForm() {
           '1️⃣ Apps Script kodu aşağıdaki şekilde olmalı\n' +
           '2️⃣ Deploy → "Execute as: Me" + "Who has access: Anyone"\n' +
           '3️⃣ Her kod değişlikliğinde „New deployment“ yapın\n' +
-          '4️⃣ Yeni deployment URL’sini buraya yapıştırın'
+          '4️⃣ Yeni deployment URL\'sini buraya yapıştırın'
         ));
       }, TIMEOUT_MS);
 
