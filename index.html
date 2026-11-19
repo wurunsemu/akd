@@ -174,6 +174,10 @@
         <input id="cnt_phone" type="tel" class="input mt-1" placeholder="05xx xxx xx xx">
       </div>
       <div>
+        <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">E-posta</label>
+        <input id="cnt_email" type="email" class="input mt-1" placeholder="ornek@gmail.com">
+      </div>
+      <div>
         <label class="text-[11px] text-slate-500 font-semibold uppercase tracking-wide">İlk Görüşme</label>
         <input id="cnt_date" type="date" class="input mt-1">
       </div>
@@ -943,10 +947,6 @@
         </div>
         <div id="menu_pdf_status" class="text-xs font-semibold min-h-[14px]"></div>
         <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="text-[11px] text-slate-500 font-semibold">Program Adı <span class="font-normal">(PDF başlığı)</span></label>
-            <input id="cnt_program" type="text" class="input mt-1 text-xs" placeholder="ör. Rutin">
-          </div>
           <div id="prog1_label_wrap" class="hidden">
             <label class="text-[11px] text-slate-500 font-semibold">1. Programın Adı</label>
             <input id="cnt_prog1_label" type="text" class="input mt-1 text-xs" placeholder="Hafta İçi">
@@ -1006,6 +1006,7 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4 no-print">
       <h2 class="section-title"><i class="fa-solid fa-file-invoice text-rose-600"></i> Klinik Rapor & PDF Çıktısı</h2>
       <div class="flex flex-wrap gap-2 items-center">
+        <input id="cnt_program" type="text" class="input text-xs" style="width:11rem;padding:7px 10px" placeholder="Program adı (ör. Rutin)" title="Diyet PDF'inin başlığı">
         <button onclick="generateReport()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition flex items-center gap-1.5 shadow-sm">
           <i class="fa-solid fa-arrows-rotate"></i> Raporu Oluştur / Yenile
         </button>
@@ -1232,11 +1233,17 @@
       <h3 class="section-title"><i class="fa-solid fa-video text-blue-600"></i> Google Meet Randevuları</h3>
       <a href="https://meet.google.com/new" target="_blank" rel="noopener" class="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-xs font-bold hover:bg-blue-100 whitespace-nowrap"><i class="fa-solid fa-plus"></i> Yeni Meet Oluştur</a>
     </div>
-    <p class="text-xs text-slate-500">"Yeni Meet Oluştur" ile açılan görüşmenin linkini kopyalayıp buraya yapıştırın. Randevuyu danışana WhatsApp ile gönderebilir, saati gelince tek tıkla katılabilirsiniz.</p>
+    <p class="text-xs text-slate-500">İlk Meet'i "Yeni Meet Oluştur" ile açıp linkini yapıştırın ve "varsayılan" olarak işaretleyin; sonraki randevularda otomatik gelir. "Randevu Ekle"ye basınca Google Takvim daveti danışanın e-postasıyla hazır açılır — <b>Kaydet → Gönder</b> deyince davet e-postası danışana gider.</p>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
       <div><label class="text-[11px] text-slate-500 font-semibold">Tarih</label><input id="meet_date" type="date" class="input mt-1"></div>
       <div><label class="text-[11px] text-slate-500 font-semibold">Saat</label><input id="meet_time" type="time" class="input mt-1" value="10:00"></div>
       <div class="col-span-2"><label class="text-[11px] text-slate-500 font-semibold">Meet Linki</label><input id="meet_link" type="url" class="input mt-1" placeholder="https://meet.google.com/abc-defg-hij"></div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div><label class="text-[11px] text-slate-500 font-semibold">Danışanın E-postası <span class="font-normal">(davet buraya gider)</span></label><input id="meet_email" type="email" class="input mt-1" placeholder="1. sayfadaki e-posta otomatik gelir"></div>
+      <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer sm:pt-5">
+        <input type="checkbox" id="meet_save_default" class="accent-blue-600"> Bu linki varsayılan Meet linkim olarak kullan
+      </label>
     </div>
     <div class="flex gap-2">
       <input id="meet_note" type="text" class="input text-xs" placeholder="Not (ör. 2. kontrol görüşmesi)">
@@ -1290,7 +1297,7 @@ let CL = JSON.parse(localStorage.getItem('akd_clients') || '[]');
 let curIdx = -1;
 
 const FIELDS = [
-  'cnt_name','cnt_program','cnt_dob','cnt_age','cnt_sex','cnt_civil','cnt_job','cnt_phone','cnt_date','cnt_ref',
+  'cnt_name','cnt_program','cnt_dob','cnt_age','cnt_sex','cnt_civil','cnt_job','cnt_phone','cnt_email','cnt_date','cnt_ref',
   'cnt_height','cnt_weight','cnt_goal_wt','cnt_waist','cnt_hip','cnt_neck',
   'cnt_complaint','cnt_goal_type','cnt_goal','cnt_meds','cnt_family','cnt_notes',
   'dx_other','cnt_pal','cnt_ex_type','cnt_ex_dur','cnt_steps',
@@ -2715,7 +2722,7 @@ async function buildDietPDF(o) {
 
   const rawName = (o.name || 'Danışan').trim();
   const name    = tr(rawName);
-  const title   = tr((o.title || 'Bireysel Diyet Programı').trim());
+  const title   = tr((o.title || 'Diyet Programı').trim());
   const dateStr = o.date || new Date().toISOString().slice(0,10);
   const programs = (o.programs || []).filter((p, i) => i === 0 || String(p.menu||'').trim());
   const recs    = o.recs || '';
@@ -2924,6 +2931,12 @@ function collectDietPrograms() {
 async function downloadDietPDF() {
   const msgEl = $('diet_pdf_msg');
   const setMsg = (t,c='text-indigo-600') => { if(msgEl){msgEl.textContent=t; msgEl.className='text-xs font-semibold min-h-[18px] no-print px-1 '+c;} };
+  const pn = $('cnt_program');
+  if (pn && !pn.value.trim()) {
+    setMsg('Önce program adını yazın (ör. Rutin) — PDF başlığı olarak kullanılır.', 'text-red-500');
+    pn.focus(); pn.classList.add('ring-2','ring-rose-300'); setTimeout(() => pn.classList.remove('ring-2','ring-rose-300'), 2500);
+    return;
+  }
   setMsg('PDF oluşturuluyor...');
   try {
     const r = await buildDietPDF({
@@ -3273,10 +3286,10 @@ function fillFromGForm(data) {
     // Zaman & atlanacaklar
     'Zaman Damgası':            '__skip__',
     'Timestamp':                '__skip__',
-    'Email':                    '__skip__',
-    'E-posta Adresi':           '__skip__',
-    'E-posta adresiniz':        '__skip__',
-    'E-posta Adresiniz':        '__skip__',
+    'Email':                    'cnt_email',
+    'E-posta Adresi':           'cnt_email',
+    'E-posta adresiniz':        'cnt_email',
+    'E-posta Adresiniz':        'cnt_email',
     'Eğitim durumunuz':         '__skip__',
     'Eğitim Durumunuz':         '__skip__',
     // Ad Soyad
@@ -4317,7 +4330,15 @@ function applyGoalToEnergy(fromText) {
 // Google Form'dan doldurulunca hedefi de enerjiye aktar
 if (typeof fillFromGForm === 'function') {
   const _fillFromGForm = fillFromGForm;
-  fillFromGForm = function(d) { _fillFromGForm(d); applyGoalToEnergy(true); };
+  fillFromGForm = function(d) {
+    _fillFromGForm(d);
+    const em = $('cnt_email');
+    if (em && !em.value && d && typeof d === 'object') {
+      const k = Object.keys(d).find(k => /e-?posta|e-?mail|mail adres/i.test(k) && /@/.test(String(d[k])));
+      if (k) em.value = String(d[k]).trim();
+    }
+    applyGoalToEnergy(true);
+  };
 }
 
 /* ════════════════════════════════════════════════════
@@ -4389,6 +4410,7 @@ function resetRecPresets() {
    GOOGLE MEET RANDEVULARI (tüm danışanlar, tarayıcıda saklanır)
 ════════════════════════════════════════════════════ */
 const _localDay = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+function meetDefaultLink() { try { return localStorage.getItem('akd_meet_default') || ''; } catch(e) { return ''; } }
 function meetLoad() { try { return JSON.parse(localStorage.getItem('akd_meets') || '[]'); } catch(e) { return []; } }
 function meetSaveAll(a) { localStorage.setItem('akd_meets', JSON.stringify(a)); }
 function meetMsg(t, c) { const m = $('meet_msg'); if (m) { m.textContent = t; m.className = 'text-xs font-semibold min-h-[14px] ' + (c || 'text-blue-600'); } }
@@ -4405,14 +4427,26 @@ function meetPhone(p) {
 function meetAdd() {
   const client = (($('cnt_name')||{}).value || '').trim();
   const date = $('meet_date').value, time = $('meet_time').value, link = $('meet_link').value.trim();
+  const email = ($('meet_email')||{}).value ? $('meet_email').value.trim() : '';
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return meetMsg('E-posta adresi geçersiz görünüyor.', 'text-red-500');
   if (!client) return meetMsg('Önce 1. sayfada danışan seçin veya adını girin.', 'text-red-500');
   if (!date || !time) return meetMsg('Tarih ve saat gerekli.', 'text-red-500');
   if (link && !/^https:\/\/meet\.google\.com\//.test(link)) return meetMsg('Link "https://meet.google.com/..." ile başlamalı.', 'text-red-500');
   const a = meetLoad();
-  a.push({ id: 'm_' + Date.now(), client, phone: ($('cnt_phone')||{}).value || '', date, time, link, note: $('meet_note').value.trim() });
+  const m = { id: 'm_' + Date.now(), client, phone: ($('cnt_phone')||{}).value || '', email, date, time, link, note: $('meet_note').value.trim() };
+  a.push(m);
   meetSaveAll(a);
-  $('meet_link').value = ''; $('meet_note').value = '';
-  meetMsg('Randevu eklendi.', 'text-emerald-600'); setTimeout(() => meetMsg(''), 2500);
+  if (link && $('meet_save_default') && $('meet_save_default').checked) { try { localStorage.setItem('akd_meet_default', link); } catch(e) {} }
+  $('meet_note').value = '';
+  $('meet_link').value = meetDefaultLink();
+  if (email) {
+    // Google Takvim daveti danışan misafir olarak eklenmiş halde açılır; Kaydet → Gönder ile e-posta gider
+    window.open(meetCalUrl(m), '_blank', 'noopener');
+    meetMsg('Randevu eklendi. Açılan Google Takvim sekmesinde "Kaydet" ve ardından "Gönder"e basın — davet ' + email + ' adresine gider.', 'text-emerald-600');
+  } else {
+    meetMsg('Randevu eklendi. (E-posta girilmediği için davet gönderilmedi; WhatsApp ile gönderebilirsiniz.)', 'text-emerald-600');
+  }
+  setTimeout(() => meetMsg(''), 9000);
   meetRender();
 }
 function meetDelete(id) {
@@ -4434,7 +4468,10 @@ function meetCalUrl(m) {
   const p = n => String(n).padStart(2, '0');
   const en = `${end.getFullYear()}${p(end.getMonth()+1)}${p(end.getDate())}T${p(end.getHours())}${p(end.getMinutes())}00`;
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('Online görüşme: ' + m.client) +
-    '&dates=' + st + '/' + en + '&ctz=Europe/Istanbul&details=' + encodeURIComponent((m.link ? 'Google Meet: ' + m.link + '\n' : '') + (m.note || ''));
+    '&dates=' + st + '/' + en + '&ctz=Europe/Istanbul' +
+    (m.email ? '&add=' + encodeURIComponent(m.email) : '') +
+    (m.link ? '&location=' + encodeURIComponent(m.link) : '') +
+    '&details=' + encodeURIComponent((m.link ? 'Google Meet bağlantısı: ' + m.link + '\n\n' : '') + (m.note ? m.note + '\n\n' : '') + 'Dyt. Yunus Aksu');
 }
 function meetCard(m, showClient) {
   const esc = t => String(t || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -4447,13 +4484,16 @@ function meetCard(m, showClient) {
     <div class="text-xs">
       <p class="font-bold text-slate-800">${showClient ? esc(m.client) + ' · ' : ''}${esc(meetFmtDate(m.date))} · ${esc(m.time.replace(':', '.'))}${today && !past ? ' <span class="ml-1 px-1.5 py-0.5 bg-blue-600 text-white rounded text-[10px]">BUGÜN</span>' : ''}${past ? ' <span class="text-slate-400 font-normal">(geçti)</span>' : ''}</p>
       ${m.note ? `<p class="text-slate-500">${esc(m.note)}</p>` : ''}
+      ${m.email ? `<p class="text-slate-500"><i class="fa-regular fa-envelope"></i> ${esc(m.email)}</p>` : ''}
       ${m.link ? `<p class="text-blue-600 break-all">${esc(m.link)}</p>` : '<p class="text-amber-600">Meet linki eklenmedi</p>'}
     </div>
     <div class="flex flex-wrap gap-1.5 shrink-0">
       ${m.link ? `<a href="${esc(m.link)}" target="_blank" rel="noopener" class="px-2.5 py-1.5 ${soon || today ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700'} rounded-lg text-xs font-bold hover:opacity-90"><i class="fa-solid fa-video"></i> Katıl</a>` : ''}
       ${wa ? `<a href="https://wa.me/${wa}?text=${encodeURIComponent(meetText(m))}" target="_blank" rel="noopener" class="px-2.5 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-semibold hover:bg-emerald-100"><i class="fa-brands fa-whatsapp"></i> Gönder</a>` : ''}
       <button type="button" onclick="meetCopy('${m.id}')" class="px-2.5 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-200" title="Mesajı kopyala"><i class="fa-regular fa-copy"></i></button>
-      <a href="${meetCalUrl(m)}" target="_blank" rel="noopener" class="px-2.5 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-200" title="Google Takvim'e ekle"><i class="fa-regular fa-calendar-plus"></i></a>
+      ${m.email
+        ? `<a href="${meetCalUrl(m)}" target="_blank" rel="noopener" class="px-2.5 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-xs font-semibold hover:bg-amber-100" title="Google Takvim'de davet olarak aç (danışan misafir)"><i class="fa-regular fa-envelope"></i> Davet</a>`
+        : `<a href="${meetCalUrl(m)}" target="_blank" rel="noopener" class="px-2.5 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-200" title="Google Takvim'e ekle"><i class="fa-regular fa-calendar-plus"></i></a>`}
       <button type="button" onclick="meetDelete('${m.id}')" class="px-2.5 py-1.5 bg-red-50 text-red-500 rounded-lg text-xs hover:bg-red-100" title="Sil"><i class="fa-solid fa-trash"></i></button>
     </div>
   </div>`;
@@ -4461,6 +4501,9 @@ function meetCard(m, showClient) {
 function meetRender() {
   const list = $('meet_list'), all = $('meet_all');
   if ($('meet_date') && !$('meet_date').value) $('meet_date').value = _localDay();
+  if ($('meet_link') && !$('meet_link').value) $('meet_link').value = meetDefaultLink();
+  if ($('meet_email')) $('meet_email').value = (($('cnt_email')||{}).value || '').trim();
+  if ($('meet_save_default')) $('meet_save_default').checked = !meetDefaultLink();
   const items = meetLoad().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
   const client = (($('cnt_name')||{}).value || '').trim();
   if (list) {
