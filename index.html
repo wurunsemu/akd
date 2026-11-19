@@ -2767,15 +2767,24 @@ async function buildDietPDF(o) {
 
   const fitSize = (font, text, size, maxW, minSize) => { let s = size; while (s > minSize && font.widthOfTextAtSize(text, s) > maxW) s -= 0.5; return s; };
 
-  let page, y;
+  let page, y, pageTop = TOP_Y;
+  const TOP_Y_NOTITLE = H - 92;   // üst başlık yokken içerik daha yukarıdan başlar
+  // pageTitle = null → üstte büyük başlık yok (iki programda alt başlıklar yeterli)
   function newPage(pageTitle) {
     page = doc.addPage([W, H]);
     page.drawImage(bgImg, { x: -11.4175, y: H - 851.5709, width: 618.2329, height: 860.5744 });
     const ns = fitSize(fName, name, 22, NAME_MAXW, 12);
     page.drawText(name, { x: NAME_CX - fName.widthOfTextAtSize(name, ns)/2, y: H - 41.5, size: ns, font: fName, color: cName });
-    const ts = fitSize(fTitle, pageTitle, 22, TITLE_MAXW, 12);
-    page.drawText(pageTitle, { x: TITLE_CX - fTitle.widthOfTextAtSize(pageTitle, ts)/2, y: H - 86, size: ts, font: fTitle, color: cTitle });
-    y = TOP_Y;
+    if (pageTitle == null) {
+      // Şablondaki boş başlık çizgisini ört
+      page.drawRectangle({ x: 290, y: H - 94, width: 166, height: 5, color: rgb(1,1,1) });
+      pageTop = TOP_Y_NOTITLE;
+    } else {
+      const ts = fitSize(fTitle, pageTitle, 22, TITLE_MAXW, 12);
+      page.drawText(pageTitle, { x: TITLE_CX - fTitle.widthOfTextAtSize(pageTitle, ts)/2, y: H - 86, size: ts, font: fTitle, color: cTitle });
+      pageTop = TOP_Y;
+    }
+    y = pageTop;
   }
 
   // Fontta karşılığı olmayan karakterleri (emoji, kutu çizgisi vb.) at; baştaki madde imini kaldır; saatleri 10.30 yap
@@ -2852,14 +2861,14 @@ async function buildDietPDF(o) {
     return clean;
   }
   const totalH = rows => rows.reduce((s, r) => s + (r.gap || r.h), 0);
-  const pickSize = (blocks, minFs = 6.5) => {
-    for (let fs = 10; fs >= minFs; fs -= 0.25) if (totalH(layout(blocks, fs)) <= AVAIL) return fs;
+  const pickSize = (blocks, minFs = 6.5, avail = AVAIL) => {
+    for (let fs = 10; fs >= minFs; fs -= 0.25) if (totalH(layout(blocks, fs)) <= avail) return fs;
     return null;
   };
 
   function drawRows(rows, fs, contTitle) {
     for (const r of rows) {
-      if (r.gap) { if (y < TOP_Y) y -= r.gap; continue; }
+      if (r.gap) { if (y < pageTop) y -= r.gap; continue; }
       if (y < BOTTOM_Y || (r.keep && y - r.h * 2.5 < BOTTOM_Y)) newPage(contTitle);
       const sz = r.size || fs;
       const w = r.segs.reduce((s, g) => s + g.f.widthOfTextAtSize(g.s, sz), 0);
@@ -2873,24 +2882,29 @@ async function buildDietPDF(o) {
   // ── Diyet programı sayfa(lar)ı ──
   const progBlocks = programs.map(p => buildBlocks(p.menu));
   const hasContent = progBlocks.some(b => b.some(x => x.k !== 'blank'));
-  newPage(title);
-  if (!hasContent) {
-    const t = tr('(Menü girilmemiş - Menü sekmesinden doldurun)');
-    page.drawText(t, { x: CX - fR.widthOfTextAtSize(t, 9)/2, y, size: 9, font: fR, color: cName });
-  } else if (programs.length === 1) {
-    const fs = pickSize(progBlocks[0]) || 6.5;
-    drawRows(layout(progBlocks[0], fs), fs, title + ' (devam)');
-  } else {
-    const withHead = programs.map((p, i) => [{ k:'ptitle', t: tr(p.label || ('Program ' + (i+1))) }].concat(progBlocks[i]));
-    const all = withHead.flatMap((b, i) => i ? [{ k:'blank' }].concat(b) : b);
-    const fsAll = pickSize(all, 7);
-    if (fsAll) {
-      drawRows(layout(all, fsAll), fsAll, title + ' (devam)');           // hepsi aynı sayfada
+  if (!hasContent || programs.length === 1) {
+    newPage(title);
+    if (!hasContent) {
+      const t = tr('(Menü girilmemiş - Menü sekmesinden doldurun)');
+      page.drawText(t, { x: CX - fR.widthOfTextAtSize(t, 9)/2, y, size: 9, font: fR, color: cName });
     } else {
-      withHead.forEach((b, i) => {                                         // her program kendi sayfasında
-        if (i) newPage(title);
+      const fs = pickSize(progBlocks[0]) || 6.5;
+      drawRows(layout(progBlocks[0], fs), fs, title + ' (devam)');
+    }
+  } else {
+    // İki program: üstte büyük başlık yok, her programın kendi alt başlığı var
+    const labels = programs.map((p, i) => tr((p.label || '').trim() || ('Program ' + (i+1))));
+    const withHead = labels.map((l, i) => [{ k:'ptitle', t: l }].concat(progBlocks[i]));
+    const all = withHead.flatMap((b, i) => i ? [{ k:'blank' }].concat(b) : b);
+    const fsAll = pickSize(all, 7, TOP_Y_NOTITLE - BOTTOM_Y);
+    if (fsAll) {
+      newPage(null);                                                       // hepsi aynı sayfada
+      drawRows(layout(all, fsAll), fsAll, null);
+    } else {
+      progBlocks.forEach((b, i) => {                                       // sığmazsa: her program kendi sayfasında, başlığı kendi adı
+        newPage(labels[i]);
         const fs = pickSize(b) || 6.5;
-        drawRows(layout(b, fs), fs, title + ' (devam)');
+        drawRows(layout(b, fs), fs, labels[i] + ' (devam)');
       });
     }
   }
@@ -3287,6 +3301,9 @@ function fillFromGForm(data) {
     'Zaman Damgası':            '__skip__',
     'Timestamp':                '__skip__',
     'Email':                    'cnt_email',
+    'Email Address':            'cnt_email',
+    'E-posta':                  'cnt_email',
+    'E-posta adresi':           'cnt_email',
     'E-posta Adresi':           'cnt_email',
     'E-posta adresiniz':        'cnt_email',
     'E-posta Adresiniz':        'cnt_email',
