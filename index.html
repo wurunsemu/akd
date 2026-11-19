@@ -82,6 +82,9 @@
     <button onclick="switchTab('sp')" id="nav-sp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
       <i class="fa-solid fa-pills text-sm text-purple-500"></i> <span class="hidden sm:inline">6.</span> Supp. Protokol
     </button>
+    <button onclick="switchTab('gv')" id="nav-gv" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+      <i class="fa-solid fa-calendar-check text-sm text-teal-500"></i> <span class="hidden sm:inline">7.</span> Görüşmeler
+    </button>
   </div>
 </nav>
 
@@ -637,8 +640,8 @@
         <input id="en_bf" type="number" step="0.1" class="input mt-1" placeholder="%" onchange="calcEnergy()">
       </div>
       <div>
-        <label class="text-[11px] text-slate-500 font-semibold">Özel Kalori Hedefi</label>
-        <input id="en_custom_kcal" type="number" class="input mt-1" placeholder="kcal" onchange="calcEnergy()">
+        <label class="text-[11px] text-slate-500 font-semibold">Özel Kalori Hedefi (fark olarak, ör: -900)</label>
+        <input id="en_custom_kcal" type="number" class="input mt-1" placeholder="ör: -900" onchange="$('en_goal').value='custom'; calcEnergy()">
       </div>
     </div>
 
@@ -1076,6 +1079,81 @@
 
 </section>
 
+<!-- ════ TAB 7: GÖRÜŞME GEÇMİŞİ ════ -->
+<section id="tab-gv" class="tab-content hidden space-y-5">
+
+  <div class="card space-y-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
+      <h2 class="section-title"><i class="fa-solid fa-calendar-check text-teal-600"></i> Görüşme Geçmişi & Takip</h2>
+      <button onclick="gvNewVisit()" class="px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-bold hover:bg-teal-700 transition flex items-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-plus"></i> Yeni Görüşme Ekle
+      </button>
+    </div>
+    <p class="text-xs text-slate-500">Danışanın takip seanslarını, ağırlık değişimini ve verilen diyet planlarını kaydedin.</p>
+  </div>
+
+  <!-- Yeni Görüşme Formu (gizli, açılır-kapanır) -->
+  <div id="gv_form_card" class="card hidden space-y-4 border-2 border-teal-200 bg-teal-50">
+    <h3 class="font-bold text-teal-800 text-sm flex items-center gap-2">
+      <i class="fa-solid fa-pen-to-square text-teal-600"></i>
+      <span id="gv_form_title">Yeni Görüşme</span>
+    </h3>
+    <input type="hidden" id="gv_edit_id" value="">
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Görüşme Tarihi</label>
+        <input id="gv_date" type="date" class="input mt-1">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Kilo (kg)</label>
+        <input id="gv_weight" type="number" step="0.1" class="input mt-1" placeholder="ör: 72.5">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Hedef Kalori (kcal)</label>
+        <input id="gv_kcal" type="number" class="input mt-1" placeholder="ör: 1600">
+      </div>
+      <div>
+        <label class="text-[11px] text-slate-500 font-semibold">Program Adı</label>
+        <input id="gv_prog" type="text" class="input mt-1" placeholder="ör: Rutin, Hızlı Kilo">
+      </div>
+    </div>
+
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">Görüşme Notu / Klinik Gözlem</label>
+      <textarea id="gv_notes" rows="3" class="input mt-1 resize-y" placeholder="Danışanın uyumu, şikayetler, lab sonuçları, öneriler..."></textarea>
+    </div>
+
+    <div>
+      <label class="text-[11px] text-slate-500 font-semibold">Bu Görüşme için Diyet Planı</label>
+      <textarea id="gv_menu" rows="10" class="input mt-1 resize-y font-mono text-xs" placeholder="Kahvaltı 08:00 - 09:00&#10;...&#10;&#10;Ara Öğün 10:30&#10;..."></textarea>
+    </div>
+
+    <div class="flex gap-2 pt-2 border-t border-teal-100">
+      <button onclick="gvSaveVisit()" class="px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-bold hover:bg-teal-700 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-floppy-disk"></i> Kaydet
+      </button>
+      <button onclick="gvDownloadVisitPDF()" class="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-file-pdf"></i> PDF İndir
+      </button>
+      <button onclick="gvCancelForm()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200 transition">
+        İptal
+      </button>
+    </div>
+    <div id="gv_form_msg" class="text-xs font-semibold min-h-[16px]"></div>
+  </div>
+
+  <!-- Görüşme Kartları Listesi -->
+  <div id="gv_list" class="space-y-3">
+    <div class="card text-center py-10 text-slate-400 text-sm italic">
+      <i class="fa-solid fa-calendar-xmark text-3xl mb-3 opacity-30"></i>
+      <p>Henüz görüşme kaydı yok.</p>
+      <p class="text-xs mt-1">Üstteki "Yeni Görüşme Ekle" butonuyla başlayabilirsiniz.</p>
+    </div>
+  </div>
+
+</section>
+
 </main>
 
 <!-- ══════════════════ FOOTER ══════════════════ -->
@@ -1241,7 +1319,7 @@ function calcEnergy() {
     rmr = 500 + 22*ffm;
   }
   const tee = rmr * pal;
-  const goalAdj = ($('en_goal')||{}).value === 'custom' ? (N('en_custom_kcal') - tee) : parseInt(($('en_goal')||{}).value||'0');
+  const goalAdj = ($('en_goal')||{}).value === 'custom' ? N('en_custom_kcal') : parseInt(($('en_goal')||{}).value||'0');
   const target = tee + goalAdj;
 
   $('en_rmr').textContent = f(rmr,0);
@@ -1533,9 +1611,24 @@ function renderSuppClinRecs() {
 /* Türkçe → Latin (pdf-lib StandardFonts sadece WinAnsi destekler) */
 function trTxt(s) {
   if (!s) return '';
-  return String(s).replace(/[şŞğĞıİöÖüÜçÇâÂîÎûÛéàè]/g, m => (
-    {ş:'s',Ş:'S',ğ:'g',Ğ:'G',ı:'i',İ:'I',ö:'o',Ö:'O',ü:'u',Ü:'U',ç:'c',Ç:'C',
-     â:'a',Â:'A',î:'i',Î:'I',û:'u',Û:'U',é:'e',à:'a',è:'e'}[m]||m));
+  return String(s)
+    .replace(/[şŞğĞıİöÖüÜçÇâÂîÎûÛéàè]/g, m => (
+      {ş:'s',Ş:'S',ğ:'g',Ğ:'G',ı:'i',İ:'I',ö:'o',Ö:'O',ü:'u',Ü:'U',ç:'c',Ç:'C',
+       â:'a',Â:'A',î:'i',Î:'I',û:'u',Û:'U',é:'e',à:'a',è:'e'}[m]||m))
+    .replace(/—/g,'-')   // em dash —
+    .replace(/–/g,'-')   // en dash –
+    .replace(/→/g,'->')  // →
+    .replace(/•/g,'*')   // bullet •
+    .replace(/½/g,'1/2') // ½
+    .replace(/¼/g,'1/4') // ¼
+    .replace(/¾/g,'3/4') // ¾
+    .replace(/×/g,'x')   // ×
+    .replace(/‘/g,"'")   // '
+    .replace(/’/g,"'")   // '
+    .replace(/“/g,'"')   // "
+    .replace(/”/g,'"')   // "
+    .replace(/…/g,'...') // …
+    .replace(/[^\x20-\x7E]/g, '?'); // fallback: replace any remaining non-ASCII
 }
 
 async function suppGenPDF() {
@@ -1622,6 +1715,7 @@ function switchTab(tabId) {
   if (tabId==='sp') { renderSuppClinRecs(); suppLoad(); }
   if (tabId==='dg') { renderExchangeTable(); renderMenuRecs(); }
   if (tabId==='rp') generateReport();
+  if (tabId==='gv') gvRender();
 }
 
 /* ══ BAŞLANGIÇ ══ */
@@ -2341,36 +2435,486 @@ function generateReport() {
 async function downloadDietPDF() {
   const msgEl = $('diet_pdf_msg');
   const setMsg = (t,c='text-indigo-600') => { if(msgEl){msgEl.textContent=t; msgEl.className='text-xs font-semibold min-h-[18px] no-print px-1 '+c;} };
-  setMsg('PDF oluşturuluyor…');
+  setMsg('PDF olusturuluyor...');
 
   let PDFLib; try{PDFLib=window.PDFLib;}catch(e){}
-  if (!PDFLib||!PDFLib.PDFDocument) { setMsg('⚠️ PDF kütüphanesi yüklenemedi.','text-red-500'); return; }
+  if (!PDFLib||!PDFLib.PDFDocument) { setMsg('PDF kutuphanesi yuklenemedi.','text-red-500'); return; }
 
   const {PDFDocument,rgb,StandardFonts} = PDFLib;
   const tr = s => trTxt(s);
 
   const rawName = ($('cnt_name')||{}).value||'Danisan';
-  const name = tr(rawName);
+  const name    = tr(rawName);
+  const progName= tr(($('cnt_program')||{}).value||'Bireysel Diyet Plani');
   const dateStr = ($('cnt_date')||{}).value||new Date().toISOString().slice(0,10);
-  const wt = ($('cnt_weight')||{}).value||'';
-  const kcal = (($('en_target')||{}).textContent||'—').trim();
-  const cho  = (($('macro_cho')||{}).textContent||'—').trim();
-  const pro  = (($('macro_pro')||{}).textContent||'—').trim();
-  const fat  = (($('macro_fat')||{}).textContent||'—').trim();
-  const menu = ($('written_menu')||{}).value||'';
-  const notes= ($('client_notes')||{}).value||'';
+  const wt      = ($('cnt_weight')||{}).value||'';
+  const kcal    = (($('en_target')||{}).textContent||'-').trim();
+  const cho     = (($('macro_cho')||{}).textContent||'-').trim();
+  const pro     = (($('macro_pro')||{}).textContent||'-').trim();
+  const fat     = (($('macro_fat')||{}).textContent||'-').trim();
+  const menu    = ($('written_menu')||{}).value||'';
+  const notes   = ($('client_notes')||{}).value||'';
+
+  // ── Renkler (template'e uygun) ──────────────────────────
+  const cDarkGreen  = rgb(0.106, 0.400, 0.251);  // #1b6640 — başlık
+  const cOrange     = rgb(0.882, 0.600, 0.133);  // #e19922 — öğün saati
+  const cPurple     = rgb(0.420, 0.286, 0.584);  // #6b4995 — "ya da"
+  const cGray       = rgb(0.420, 0.420, 0.420);  // #6b6b6b — hasta adı
+  const cDark       = rgb(0.12,  0.12,  0.12 );  // metin
+  const cMid        = rgb(0.50,  0.50,  0.50 );  // footer
+  const cWhite      = rgb(1, 1, 1);
+  const cLine       = rgb(0.80, 0.80, 0.80);
+
+  // Sidebar renkleri (pastel, çift sütun mozaik)
+  const sideColors = [
+    rgb(0.671, 0.859, 0.600), rgb(0.996, 0.859, 0.600), // yeşil, turuncu
+    rgb(0.780, 0.722, 0.886), rgb(0.996, 0.973, 0.651), // mor, sarı
+    rgb(0.671, 0.859, 0.600), rgb(0.996, 0.859, 0.600),
+    rgb(0.780, 0.722, 0.886), rgb(0.996, 0.973, 0.651),
+    rgb(0.671, 0.859, 0.600), rgb(0.996, 0.859, 0.600),
+    rgb(0.780, 0.722, 0.886), rgb(0.996, 0.973, 0.651),
+    rgb(0.671, 0.859, 0.600), rgb(0.996, 0.859, 0.600),
+    rgb(0.780, 0.722, 0.886), rgb(0.996, 0.973, 0.651),
+    rgb(0.671, 0.859, 0.600), rgb(0.996, 0.859, 0.600),
+    rgb(0.780, 0.722, 0.886), rgb(0.996, 0.973, 0.651),
+    rgb(0.671, 0.859, 0.600), rgb(0.996, 0.859, 0.600),
+    rgb(0.780, 0.722, 0.886), rgb(0.996, 0.973, 0.651),
+    rgb(0.671, 0.859, 0.600), rgb(0.996, 0.859, 0.600),
+    rgb(0.780, 0.722, 0.886), rgb(0.996, 0.973, 0.651),
+    rgb(0.671, 0.859, 0.600), rgb(0.996, 0.859, 0.600),
+    rgb(0.780, 0.722, 0.886), rgb(0.996, 0.973, 0.651),
+    rgb(0.671, 0.859, 0.600), rgb(0.996, 0.859, 0.600),
+  ];
+  // Sidebar içerik (besin grubu kısaltmaları)
+  const sideLabels = [
+    'Et','Sus','Sut','Mey',
+    'Seb','Yag','Tah','Tur',
+    'Bal','Kur','Fın','Muz',
+    'Yum','Peyn','Zey','Avk',
+    'Bal','Sut','Seb','Mey',
+    'Tah','Et','Yag','Fın',
+    'Muz','Yum','Kur','Tur',
+    'Zey','Sus','Avk','Peyn',
+    'Et','Sus',
+  ];
 
   try {
     const doc = await PDFDocument.create();
-    doc.setTitle(name+' - Diyet Plani');
+    doc.setTitle(name + ' - ' + progName);
     doc.setAuthor('Uzm. Dyt. Yunus Aksu');
     doc.setProducer('AKD - Asistan Klinik Diyetisyen');
 
-    const W=595.28, H=841.89, MX=55, MY=48, CW=W-2*MX;
+    const W = 595.28, H = 841.89;
+    const SIDEBAR = 58;   // sol kenar bant genişliği
+    const MX = SIDEBAR + 14;  // metin başlangıç x
+    const MY = 42;             // alt marj
+    const CW = W - MX - 22;   // içerik genişliği
+
     const fB = await doc.embedFont(StandardFonts.HelveticaBold);
     const fR = await doc.embedFont(StandardFonts.Helvetica);
-    const ci=rgb(.388,.4,.945), cw=rgb(1,1,1), cd=rgb(.08,.08,.13);
-    const cs=rgb(.4,.44,.52), cl=rgb(.96,.97,.99), cm=rgb(.55,.58,.7);
+
+    // Yardımcı: kelime sarma
+    function wrap(text, font, size, maxW) {
+      const out = [];
+      for (const raw of String(text||'').split('\n')) {
+        if (!raw.trim()) { out.push(''); continue; }
+        const words = raw.split(' '); let cur = '';
+        for (const w of words) {
+          const test = cur ? cur+' '+w : w;
+          if (font.widthOfTextAtSize(test, size) > maxW && cur) { out.push(cur); cur = w; }
+          else cur = test;
+        }
+        if (cur) out.push(cur);
+      }
+      return out;
+    }
+
+    let page, y;
+
+    // Sol sidebar: besin ikonu mozaik çizimi
+    function drawSidebar(pg, forNotes=false) {
+      const tileW = SIDEBAR / 2, tileH = 26;
+      const totalTiles = Math.ceil(H / tileH) * 2;
+      for (let i = 0; i < totalTiles; i++) {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const tx = col * tileW;
+        const ty = H - (row + 1) * tileH;
+        if (ty < -tileH) break;
+        pg.drawRectangle({ x: tx, y: ty, width: tileW, height: tileH, color: sideColors[i % sideColors.length] });
+        const lbl = forNotes ? '' : (sideLabels[i % sideLabels.length] || '');
+        if (lbl) {
+          const lw = fR.widthOfTextAtSize(lbl, 5.5);
+          pg.drawText(lbl, { x: tx + tileW/2 - lw/2, y: ty + tileH/2 - 3, size: 5.5, font: fR, color: rgb(0.3,0.3,0.3) });
+        }
+      }
+      // İnce dikey çizgi sidebar sağ kenarı
+      pg.drawLine({ start:{x:SIDEBAR,y:0}, end:{x:SIDEBAR,y:H}, thickness:0.5, color:rgb(0.85,0.85,0.85) });
+    }
+
+    // Footer çizimi
+    function drawFooter(pg) {
+      pg.drawLine({ start:{x:MX,y:MY+10}, end:{x:W-22,y:MY+10}, thickness:0.4, color:cLine });
+      const foot1 = '+90 534 544 05 06   @diyetisyenyunusaksu   dyt.yunusaksu@gmail.com';
+      const fw1 = fR.widthOfTextAtSize(foot1, 6.5);
+      pg.drawText(foot1, { x: MX + CW/2 - fw1/2, y: MY, size: 6.5, font: fR, color: cMid });
+      const foot2 = 'Uzm. Dyt. Yunus Aksu';
+      const fw2 = fB.widthOfTextAtSize(foot2, 7);
+      pg.drawText(foot2, { x: MX + CW/2 - fw2/2, y: MY - 11, size: 7, font: fB, color: cMid });
+    }
+
+    // Yeni sayfa açma (diyet içeriği için)
+    function newPage(isFirst=false) {
+      page = doc.addPage([W, H]);
+      drawSidebar(page, false);
+      drawFooter(page);
+
+      const topY = H - 24;
+
+      if (isFirst) {
+        // Program adı: koyu yeşil, büyük, sol tarafta
+        page.drawText(progName, { x: MX, y: topY - 4, size: 15, font: fB, color: cDarkGreen });
+        // Hasta adı: gri, küçük, sağ taraf
+        const nameLabel = name + (wt ? '  |  ' + wt + ' kg' : '');
+        const nw = fR.widthOfTextAtSize(nameLabel, 8.5);
+        page.drawText(nameLabel, { x: W - 22 - nw, y: topY, size: 8.5, font: fR, color: cGray });
+        // Tarih
+        const dw = fR.widthOfTextAtSize(tr(dateStr), 8);
+        page.drawText(tr(dateStr), { x: W - 22 - dw, y: topY - 12, size: 8, font: fR, color: cGray });
+        // Çizgi başlık altı
+        page.drawLine({ start:{x:MX,y:topY-20}, end:{x:W-22,y:topY-20}, thickness:1.0, color:cDarkGreen });
+      } else {
+        // Devam sayfası: sadece program adı küçük
+        page.drawText(progName + ' (devam)', { x: MX, y: topY, size: 9, font: fR, color: cGray });
+        page.drawLine({ start:{x:MX,y:topY-10}, end:{x:W-22,y:topY-10}, thickness:0.4, color:cLine });
+      }
+
+      y = isFirst ? topY - 36 : topY - 22;
+    }
+
+    // Notlar sayfası
+    function newNotesPage(isFirst=false) {
+      page = doc.addPage([W, H]);
+      drawSidebar(page, true);
+      drawFooter(page);
+      const topY = H - 24;
+      if (isFirst) {
+        page.drawText('Notlar:', { x: MX, y: topY - 4, size: 15, font: fB, color: cOrange });
+        page.drawLine({ start:{x:MX,y:topY-20}, end:{x:W-22,y:topY-20}, thickness:1.0, color:cOrange });
+        y = topY - 38;
+      } else {
+        page.drawText('Notlar (devam)', { x: MX, y: topY, size: 9, font: fR, color: cGray });
+        page.drawLine({ start:{x:MX,y:topY-10}, end:{x:W-22,y:topY-10}, thickness:0.4, color:cLine });
+        y = topY - 22;
+      }
+    }
+
+    newPage(true);
+
+    // ── Enerji hedefleri kutusu ──────────────────────────
+    const eBoxH = 44;
+    page.drawRectangle({ x: MX, y: y - eBoxH, width: CW, height: eBoxH, color: rgb(0.96,0.98,0.95), borderColor: cDarkGreen, borderWidth: 0.6 });
+    page.drawText('ENERJI HEDEFLERI', { x: MX+8, y: y-11, size: 7, font: fB, color: cDarkGreen });
+    const tgts = [['Enerji', tr(kcal)+' kcal'],['KH', tr(cho)],['Protein', tr(pro)],['Yag', tr(fat)]];
+    const colW = CW / 4;
+    tgts.forEach(([lbl,val], i) => {
+      const tx = MX + 8 + i * colW;
+      page.drawText(tr(lbl), { x: tx, y: y-23, size: 7.5, font: fR, color: cGray });
+      page.drawText(val,     { x: tx, y: y-36, size: 10,  font: fB, color: cDark });
+    });
+    y -= eBoxH + 12;
+
+    // ── Diyet planı ──────────────────────────────────────
+    if (!menu.trim()) {
+      page.drawText('(Menu girilmemis - Menu sekmesinden doldurun)', { x: MX, y, size: 9, font: fR, color: cMid });
+    } else {
+      const rawLines = menu.split('\n');
+      for (let li = 0; li < rawLines.length; li++) {
+        const raw = rawLines[li];
+        const line = tr(raw);
+        const trimmed = line.trim();
+
+        if (!trimmed) { y -= 7; continue; }
+
+        // Öğün saati: "Kahvaltı 10.30 – 11.00" veya "SABAH:" veya saat ile başlayan
+        const isMealTime = /^(Kahvalti|Sabah|Ogle|Aksam|Ara Ogun|Ara ogun|Gece|Uyaninca|Yatmadan|Kusluk|\d{1,2}[.:]\d{2})/i.test(trimmed);
+        // Bölüm başlığı (ör: "Yulaf Bowl", "KAHVALTI SECENEKLERI:")
+        const isSectionTitle = !isMealTime && /^[A-Z][A-Za-z\s]{3,}:$/.test(trimmed);
+        // "ya da" satırı
+        const isYaDa = /^ya\s*da$/i.test(trimmed);
+
+        if (y < MY + 55) newPage(false);
+
+        if (isMealTime) {
+          // Boşluk bırak öncesinde (ilk satır değilse)
+          if (li > 0) y -= 5;
+          page.drawText(line, { x: MX, y, size: 11, font: fB, color: cOrange });
+          y -= 17;
+        } else if (isSectionTitle) {
+          y -= 3;
+          page.drawText(line, { x: MX + 2, y, size: 10, font: fB, color: cDarkGreen });
+          y -= 15;
+        } else if (isYaDa) {
+          const yaW = fR.widthOfTextAtSize('ya da', 9);
+          page.drawText('ya da', { x: MX + CW/2 - yaW/2, y, size: 9, font: fR, color: cPurple });
+          y -= 13;
+        } else {
+          // Normal yiyecek satırı: ortaya hizalı veya sol hizalı
+          const wrapped = wrap(line, fR, 9, CW - 20);
+          for (const wl of wrapped) {
+            if (!wl.trim()) { y -= 5; continue; }
+            if (y < MY + 55) newPage(false);
+            const lw = fR.widthOfTextAtSize(wl, 9);
+            page.drawText(wl, { x: MX + CW/2 - lw/2, y, size: 9, font: fR, color: cDark });
+            y -= 13;
+          }
+        }
+      }
+    }
+
+    // ── Notlar sayfası ───────────────────────────────────
+    if (notes.trim()) {
+      newNotesPage(true);
+      const noteLines = wrap(tr(notes), fR, 10, CW - 20);
+      for (const nl of noteLines) {
+        if (!nl.trim()) { y -= 6; continue; }
+        if (y < MY + 55) newNotesPage(false);
+        const lw = fB.widthOfTextAtSize(nl, 10);
+        page.drawText(nl, { x: MX + CW/2 - lw/2, y, size: 10, font: fB, color: cDark });
+        y -= 15;
+      }
+    }
+
+    const bytes = await doc.save();
+    const url = URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name.replace(/\s+/g,'_') + '_' + tr(progName).replace(/\s+/g,'_') + '_' + dateStr + '.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+    setMsg('PDF indirildi.','text-emerald-600');
+    setTimeout(()=>setMsg(''), 4000);
+  } catch(e) {
+    setMsg('Hata: '+e.message, 'text-red-500');
+    console.error(e);
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   GÖRÜŞME GEÇMİŞİ (FOLLOW-UP VISITS)
+════════════════════════════════════════════════════ */
+
+function gvKey() {
+  const name = ($('cnt_name')||{}).value||'';
+  return 'gv_visits_' + (name.trim().replace(/\s+/g,'_').toLowerCase() || 'default');
+}
+
+function gvLoadAll() {
+  try { return JSON.parse(localStorage.getItem(gvKey())||'[]'); } catch(e) { return []; }
+}
+
+function gvSaveAll(arr) {
+  localStorage.setItem(gvKey(), JSON.stringify(arr));
+}
+
+function gvRender() {
+  const visits = gvLoadAll();
+  const el = $('gv_list');
+  if (!el) return;
+  if (!visits.length) {
+    el.innerHTML = `<div class="card text-center py-10 text-slate-400 text-sm italic">
+      <i class="fa-solid fa-calendar-xmark text-3xl mb-3 opacity-30"></i>
+      <p>Henüz görüşme kaydı yok.</p>
+      <p class="text-xs mt-1">Üstteki "Yeni Görüşme Ekle" butonuyla başlayabilirsiniz.</p>
+    </div>`;
+    return;
+  }
+  // Sort descending (newest first)
+  const sorted = [...visits].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  el.innerHTML = sorted.map((v,i) => {
+    const diff = v.weight && sorted[i+1] && sorted[i+1].weight
+      ? (v.weight - sorted[i+1].weight).toFixed(1)
+      : null;
+    const diffHtml = diff !== null
+      ? `<span class="ml-1 text-[11px] font-bold ${parseFloat(diff)<0?'text-emerald-600':'text-rose-600'}">(${parseFloat(diff)>0?'+':''}${diff} kg)</span>`
+      : '';
+    const menuPreview = (v.menu||'').split('\n').slice(0,3).join(' · ') || '-';
+    return `
+    <div class="card border border-slate-200 space-y-3">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div>
+          <p class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-calendar-day text-teal-500"></i>
+            ${v.date||'-'}
+            ${v.prog ? `<span class="text-[11px] bg-teal-50 border border-teal-200 text-teal-700 rounded-lg px-2 py-0.5 font-semibold">${v.prog}</span>` : ''}
+          </p>
+          <p class="text-xs text-slate-500 mt-0.5">
+            ${v.weight ? `<span class="font-semibold text-slate-700">${v.weight} kg</span>${diffHtml}` : ''}
+            ${v.kcal ? ` &nbsp;|&nbsp; <span class="font-semibold">${v.kcal} kcal</span>` : ''}
+          </p>
+        </div>
+        <div class="flex gap-1.5 flex-shrink-0">
+          <button onclick="gvEditVisit('${v.id}')" class="px-2.5 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-200 transition flex items-center gap-1">
+            <i class="fa-solid fa-pen text-xs"></i> Düzenle
+          </button>
+          <button onclick="gvDownloadVisitPDFById('${v.id}')" class="px-2.5 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-semibold hover:bg-rose-100 transition flex items-center gap-1">
+            <i class="fa-solid fa-file-pdf text-xs"></i> PDF
+          </button>
+          <button onclick="gvDeleteVisit('${v.id}')" class="px-2.5 py-1.5 bg-red-50 text-red-500 rounded-lg text-xs font-semibold hover:bg-red-100 transition flex items-center gap-1">
+            <i class="fa-solid fa-trash text-xs"></i>
+          </button>
+        </div>
+      </div>
+      ${v.notes ? `<div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-800">
+        <p class="font-bold text-amber-700 mb-1 text-[11px] uppercase tracking-wide"><i class="fa-solid fa-clipboard-list mr-1"></i>Görüşme Notu</p>
+        <p class="whitespace-pre-wrap">${v.notes}</p>
+      </div>` : ''}
+      ${v.menu ? `<div class="bg-slate-50 border border-slate-100 rounded-xl p-3 text-xs text-slate-700">
+        <p class="font-bold text-slate-500 mb-1 text-[11px] uppercase tracking-wide"><i class="fa-solid fa-utensils mr-1"></i>Diyet Planı Özeti</p>
+        <p class="text-slate-500 italic truncate">${menuPreview}</p>
+        <button onclick="gvToggleMenu('${v.id}')" class="mt-1 text-teal-600 hover:underline text-[11px] font-semibold">
+          <i class="fa-solid fa-eye text-xs"></i> Tüm Planı Gör / Gizle
+        </button>
+        <div id="gv_menu_${v.id}" class="hidden mt-2 font-mono whitespace-pre-wrap text-xs text-slate-700 bg-white border border-slate-200 rounded-lg p-3">${v.menu}</div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function gvToggleMenu(id) {
+  const el = $('gv_menu_'+id);
+  if (el) el.classList.toggle('hidden');
+}
+
+function gvNewVisit() {
+  $('gv_form_title').textContent = 'Yeni Görüşme';
+  $('gv_edit_id').value = '';
+  $('gv_date').value = new Date().toISOString().slice(0,10);
+  $('gv_weight').value = '';
+  $('gv_kcal').value = (($('en_target')||{}).textContent||'').trim().replace('—','') || '';
+  $('gv_prog').value = ($('cnt_program')||{}).value || '';
+  $('gv_notes').value = '';
+  $('gv_menu').value = ($('written_menu')||{}).value || '';
+  $('gv_form_msg').textContent = '';
+  $('gv_form_card').classList.remove('hidden');
+  $('gv_form_card').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function gvEditVisit(id) {
+  const visits = gvLoadAll();
+  const v = visits.find(x => x.id === id);
+  if (!v) return;
+  $('gv_form_title').textContent = 'Görüşme Düzenle';
+  $('gv_edit_id').value = id;
+  $('gv_date').value = v.date || '';
+  $('gv_weight').value = v.weight || '';
+  $('gv_kcal').value = v.kcal || '';
+  $('gv_prog').value = v.prog || '';
+  $('gv_notes').value = v.notes || '';
+  $('gv_menu').value = v.menu || '';
+  $('gv_form_msg').textContent = '';
+  $('gv_form_card').classList.remove('hidden');
+  $('gv_form_card').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function gvSaveVisit() {
+  const editId = ($('gv_edit_id')||{}).value||'';
+  const v = {
+    id: editId || ('v_' + Date.now()),
+    date:   ($('gv_date')||{}).value||'',
+    weight: ($('gv_weight')||{}).value||'',
+    kcal:   ($('gv_kcal')||{}).value||'',
+    prog:   ($('gv_prog')||{}).value||'',
+    notes:  ($('gv_notes')||{}).value||'',
+    menu:   ($('gv_menu')||{}).value||'',
+  };
+  if (!v.date) { const m=$('gv_form_msg'); if(m){m.textContent='Tarih zorunludur.';m.className='text-xs font-semibold text-red-500 min-h-[16px]';} return; }
+  const visits = gvLoadAll().filter(x => x.id !== v.id);
+  visits.push(v);
+  gvSaveAll(visits);
+  $('gv_form_card').classList.add('hidden');
+  const m=$('gv_form_msg'); if(m){m.textContent='';};
+  gvRender();
+}
+
+function gvCancelForm() {
+  $('gv_form_card').classList.add('hidden');
+}
+
+function gvDeleteVisit(id) {
+  if (!confirm('Bu görüşme kaydını silmek istediğinizden emin misiniz?')) return;
+  const visits = gvLoadAll().filter(x => x.id !== id);
+  gvSaveAll(visits);
+  gvRender();
+}
+
+async function gvDownloadVisitPDFById(id) {
+  const visits = gvLoadAll();
+  const v = visits.find(x => x.id === id);
+  if (!v) return;
+  await gvGeneratePDF(v);
+}
+
+async function gvDownloadVisitPDF() {
+  const v = {
+    id: 'preview',
+    date:   ($('gv_date')||{}).value||new Date().toISOString().slice(0,10),
+    weight: ($('gv_weight')||{}).value||'',
+    kcal:   ($('gv_kcal')||{}).value||'',
+    prog:   ($('gv_prog')||{}).value||'',
+    notes:  ($('gv_notes')||{}).value||'',
+    menu:   ($('gv_menu')||{}).value||'',
+  };
+  await gvGeneratePDF(v);
+}
+
+async function gvGeneratePDF(v) {
+  const msgEl = $('gv_form_msg');
+  const setMsg = (t,c='text-indigo-600') => { if(msgEl){msgEl.textContent=t; msgEl.className='text-xs font-semibold min-h-[16px] '+c;} };
+  setMsg('PDF olusturuluyor...');
+
+  let PDFLib; try{PDFLib=window.PDFLib;}catch(e){}
+  if (!PDFLib||!PDFLib.PDFDocument) { setMsg('PDF kutuphanesi yuklenemedi.','text-red-500'); return; }
+  const {PDFDocument,rgb,StandardFonts} = PDFLib;
+  const tr = s => trTxt(s);
+
+  const rawClientName = ($('cnt_name')||{}).value||'Danisan';
+  const clientName = tr(rawClientName);
+  const progName   = tr(v.prog || 'Takip Gorusmesi');
+  const dateStr    = v.date || new Date().toISOString().slice(0,10);
+  const wt         = v.weight || '';
+  const kcal       = v.kcal || '-';
+  const menu       = v.menu || '';
+  const notes      = v.notes || '';
+
+  const cDarkGreen = rgb(0.106, 0.400, 0.251);
+  const cOrange    = rgb(0.882, 0.600, 0.133);
+  const cPurple    = rgb(0.420, 0.286, 0.584);
+  const cGray      = rgb(0.420, 0.420, 0.420);
+  const cDark      = rgb(0.12,  0.12,  0.12 );
+  const cMid       = rgb(0.50,  0.50,  0.50 );
+  const cLine      = rgb(0.80,  0.80,  0.80 );
+  const sideColors = [
+    rgb(0.671,0.859,0.600),rgb(0.996,0.859,0.600),
+    rgb(0.780,0.722,0.886),rgb(0.996,0.973,0.651),
+    rgb(0.671,0.859,0.600),rgb(0.996,0.859,0.600),
+    rgb(0.780,0.722,0.886),rgb(0.996,0.973,0.651),
+    rgb(0.671,0.859,0.600),rgb(0.996,0.859,0.600),
+    rgb(0.780,0.722,0.886),rgb(0.996,0.973,0.651),
+    rgb(0.671,0.859,0.600),rgb(0.996,0.859,0.600),
+    rgb(0.780,0.722,0.886),rgb(0.996,0.973,0.651),
+    rgb(0.671,0.859,0.600),rgb(0.996,0.859,0.600),
+  ];
+
+  try {
+    const doc = await PDFDocument.create();
+    doc.setTitle(clientName + ' - ' + progName + ' - ' + dateStr);
+    doc.setAuthor('Uzm. Dyt. Yunus Aksu');
+    doc.setProducer('AKD - Asistan Klinik Diyetisyen');
+
+    const W=595.28, H=841.89, SIDEBAR=58, MX=SIDEBAR+14, MY=42, CW=W-MX-22;
+    const fB = await doc.embedFont(StandardFonts.HelveticaBold);
+    const fR = await doc.embedFont(StandardFonts.Helvetica);
 
     function wrap(text, font, size, maxW) {
       const out=[];
@@ -2387,80 +2931,109 @@ async function downloadDietPDF() {
       return out;
     }
 
+    function drawSidebar(pg) {
+      const tileW=SIDEBAR/2, tileH=26;
+      const total=Math.ceil(H/tileH)*2;
+      for(let i=0;i<total;i++){
+        const col=i%2, row=Math.floor(i/2);
+        const tx=col*tileW, ty=H-(row+1)*tileH;
+        if(ty<-tileH)break;
+        pg.drawRectangle({x:tx,y:ty,width:tileW,height:tileH,color:sideColors[i%sideColors.length]});
+      }
+      pg.drawLine({start:{x:SIDEBAR,y:0},end:{x:SIDEBAR,y:H},thickness:0.5,color:rgb(0.85,0.85,0.85)});
+    }
+
+    function drawFooter(pg) {
+      pg.drawLine({start:{x:MX,y:MY+10},end:{x:W-22,y:MY+10},thickness:0.4,color:cLine});
+      const foot1='+90 534 544 05 06   @diyetisyenyunusaksu   dyt.yunusaksu@gmail.com';
+      const fw1=fR.widthOfTextAtSize(foot1,6.5);
+      pg.drawText(foot1,{x:MX+CW/2-fw1/2,y:MY,size:6.5,font:fR,color:cMid});
+      const fw2=fB.widthOfTextAtSize('Uzm. Dyt. Yunus Aksu',7);
+      pg.drawText('Uzm. Dyt. Yunus Aksu',{x:MX+CW/2-fw2/2,y:MY-11,size:7,font:fB,color:cMid});
+    }
+
     let page, y;
-    function newPage(addHeader=true) {
-      page = doc.addPage([W,H]);
-      if (addHeader) {
-        page.drawRectangle({x:0,y:H-70,width:W,height:70,color:ci});
-        const nw=fB.widthOfTextAtSize(name,18);
-        page.drawText(name,{x:W/2-nw/2,y:H-42,size:18,font:fB,color:cw});
-        const sub=tr('Bireysel Diyet Plani  |  '+dateStr+(wt?' | '+wt+' kg':''));
-        const sw=fR.widthOfTextAtSize(sub,9);
-        page.drawText(sub,{x:W/2-sw/2,y:H-57,size:9,font:fR,color:rgb(.85,.87,.98)});
+    function newPage(isFirst=false) {
+      page=doc.addPage([W,H]);
+      drawSidebar(page);
+      drawFooter(page);
+      const topY=H-24;
+      if(isFirst){
+        page.drawText(progName,{x:MX,y:topY-4,size:15,font:fB,color:cDarkGreen});
+        const nameLabel=clientName+(wt?'  |  '+wt+' kg':'')+(kcal&&kcal!=='-'?'  |  '+kcal+' kcal':'');
+        const nw=fR.widthOfTextAtSize(nameLabel,8.5);
+        page.drawText(nameLabel,{x:W-22-nw,y:topY,size:8.5,font:fR,color:cGray});
+        const dw=fR.widthOfTextAtSize(tr(dateStr),8);
+        page.drawText(tr(dateStr),{x:W-22-dw,y:topY-12,size:8,font:fR,color:cGray});
+        page.drawLine({start:{x:MX,y:topY-20},end:{x:W-22,y:topY-20},thickness:1.0,color:cDarkGreen});
+      } else {
+        page.drawText(progName+' (devam)',{x:MX,y:topY,size:9,font:fR,color:cGray});
+        page.drawLine({start:{x:MX,y:topY-10},end:{x:W-22,y:topY-10},thickness:0.4,color:cLine});
       }
-      const sig='Uzm. Dyt. Yunus Aksu';
-      const sw2=fB.widthOfTextAtSize(sig,7.5);
-      page.drawLine({start:{x:W/2-55,y:36},end:{x:W/2+55,y:36},thickness:.5,color:cm});
-      page.drawText(sig,{x:W/2-sw2/2,y:24,size:7.5,font:fB,color:cm});
-      y = addHeader ? H-82 : H-MY;
-    }
-    newPage();
-
-    /* — Enerji hedefleri kutusu — */
-    page.drawRectangle({x:MX,y:y-50,width:CW,height:52,color:cl});
-    page.drawText('ENERJI HEDEFLERI',{x:MX+8,y:y-14,size:7.5,font:fB,color:cs});
-    const tgts=[['Enerji',kcal+' kcal'],['KH',cho+' g'],['Protein',pro+' g'],['Yag',fat+' g']];
-    tgts.forEach(([lbl,val],i)=>{
-      const tx=MX+8+i*(CW/4);
-      page.drawText(tr(lbl),{x:tx,y:y-30,size:8,font:fR,color:cs});
-      page.drawText(tr(val),{x:tx,y:y-43,size:10.5,font:fB,color:cd});
-    });
-    y -= 62;
-
-    /* — Diyet planı bölümü — */
-    if (menu.trim()) {
-      page.drawText('DIYET PLANI',{x:MX,y,size:10,font:fB,color:ci});
-      page.drawLine({start:{x:MX,y:y-5},end:{x:W-MX,y:y-5},thickness:.8,color:ci});
-      y -= 18;
-      const menuLines = wrap(tr(menu), fR, 9.5, CW-10);
-      for (const line of menuLines) {
-        if (y < MY+40) newPage();
-        if (!line){y-=5;continue;}
-        const isMeal = /^(KAHVALTI|ARA|UYANINCA|SABAH|OGLE|AKSAM|GECE|SAAT|\d{1,2}[.:]\d{2})/i.test(line) || /^[A-Z][A-ZI ]{3,}:/.test(line);
-        const sz=isMeal?10:9.5, fn=isMeal?fB:fR, col=isMeal?cd:cs, lh=isMeal?16:13;
-        if(isMeal)y-=3;
-        page.drawText(line,{x:MX+(isMeal?0:12),y,size:sz,font:fn,color:col});
-        y-=lh;
-      }
-    } else {
-      page.drawText('(Yazili menu girilmemis — Menu sekmesinden doldurun)',{x:MX,y,size:9,font:fR,color:cm});
-      y -= 15;
+      y=isFirst?topY-36:topY-22;
     }
 
-    /* — Diyetisyen notları (ayrı sayfa) — */
-    if (notes.trim()) {
-      newPage();
-      page.drawText('DIYETISYEN NOTLARI (DAHILI)',{x:MX,y,size:10,font:fB,color:cs});
-      page.drawLine({start:{x:MX,y:y-5},end:{x:W-MX,y:y-5},thickness:.8,color:cs});
-      y-=18;
-      const noteLines=wrap(tr(notes),fR,9.5,CW-10);
-      for(const nl of noteLines){
-        if(y<MY+40)newPage(false);
-        if(!nl){y-=5;continue;}
-        page.drawText(nl,{x:MX+10,y,size:9.5,font:fR,color:cd});
-        y-=13;
+    newPage(true);
+
+    // Görüşme notu kutusu
+    if(notes.trim()){
+      const noteWrapped=wrap(tr(notes),fR,9,CW-20);
+      const boxH=noteWrapped.length*12+22;
+      page.drawRectangle({x:MX,y:y-boxH,width:CW,height:boxH,color:rgb(1.0,0.97,0.88),borderColor:cOrange,borderWidth:0.6});
+      page.drawText('GORUSME NOTU',{x:MX+8,y:y-11,size:7,font:fB,color:cOrange});
+      let ny=y-24;
+      for(const nl of noteWrapped){
+        if(!nl.trim()){ny-=5;continue;}
+        page.drawText(nl,{x:MX+8,y:ny,size:9,font:fR,color:cDark});
+        ny-=12;
+      }
+      y-=boxH+10;
+    }
+
+    // Diyet planı
+    if(menu.trim()){
+      if(y<MY+80) newPage(false);
+      page.drawLine({start:{x:MX,y:y+2},end:{x:W-22,y:y+2},thickness:0.4,color:cLine});
+      y-=10;
+      const rawLines=menu.split('\n');
+      for(let li=0;li<rawLines.length;li++){
+        const line=tr(rawLines[li]);
+        const trimmed=line.trim();
+        if(!trimmed){y-=7;continue;}
+        const isMealTime=/^(Kahvalti|Sabah|Ogle|Aksam|Ara Ogun|Ara ogun|Gece|Uyaninca|Yatmadan|Kusluk|\d{1,2}[.:]\d{2})/i.test(trimmed);
+        const isYaDa=/^ya\s*da$/i.test(trimmed);
+        if(y<MY+55) newPage(false);
+        if(isMealTime){
+          if(li>0)y-=5;
+          page.drawText(line,{x:MX,y,size:11,font:fB,color:cOrange});
+          y-=17;
+        } else if(isYaDa){
+          const yaW=fR.widthOfTextAtSize('ya da',9);
+          page.drawText('ya da',{x:MX+CW/2-yaW/2,y,size:9,font:fR,color:cPurple});
+          y-=13;
+        } else {
+          const wrapped=wrap(line,fR,9,CW-20);
+          for(const wl of wrapped){
+            if(!wl.trim()){y-=5;continue;}
+            if(y<MY+55) newPage(false);
+            const lw=fR.widthOfTextAtSize(wl,9);
+            page.drawText(wl,{x:MX+CW/2-lw/2,y,size:9,font:fR,color:cDark});
+            y-=13;
+          }
+        }
       }
     }
 
-    const bytes = await doc.save();
-    const url = URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
-    const a = document.createElement('a');
-    a.href=url; a.download=name.replace(/\s+/g,'_')+'_Diyet_Plani_'+dateStr+'.pdf';
+    const bytes=await doc.save();
+    const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=clientName.replace(/\s+/g,'_')+'_'+tr(progName).replace(/\s+/g,'_')+'_'+dateStr+'.pdf';
     a.click(); URL.revokeObjectURL(url);
-    setMsg('✅ PDF indirildi.','text-emerald-600');
+    setMsg('PDF indirildi.','text-emerald-600');
     setTimeout(()=>setMsg(''),4000);
   } catch(e) {
-    setMsg('⚠️ Hata: '+e.message,'text-red-500');
+    setMsg('Hata: '+e.message,'text-red-500');
     console.error(e);
   }
 }
