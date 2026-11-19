@@ -1710,6 +1710,24 @@ function trTxt(s) {
     .replace(/[^\x20-\x7E]/g,' ');
 }
 
+/* ── Türkçe font önbelleği (PDF'lerde gerçek Türkçe karakter desteği) ── */
+let _trFontCache = null;
+async function _loadTrFontBytes() {
+  if (_trFontCache !== null) return _trFontCache;
+  try {
+    const BASE = 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5/files/';
+    const [rBytes, bBytes] = await Promise.all([
+      fetch(BASE + 'noto-sans-latin-ext-400-normal.woff2').then(r => r.arrayBuffer()),
+      fetch(BASE + 'noto-sans-latin-ext-700-normal.woff2').then(r => r.arrayBuffer())
+    ]);
+    _trFontCache = { rBytes, bBytes };
+  } catch(e) {
+    console.warn('Türkçe font yüklenemedi, ASCII moduna geçiliyor:', e.message);
+    _trFontCache = false;
+  }
+  return _trFontCache;
+}
+
 async function suppGenPDF() {
   const rawName = ($('cnt_name')?$('cnt_name').value:'')||'Danisan';
   if (!suppItems.length) { alert('Protokolde supplement yok.'); return; }
@@ -1718,15 +1736,23 @@ async function suppGenPDF() {
 
   try {
     const { PDFDocument, rgb, StandardFonts } = PDFLib;
-    const clientName = trTxt(rawName);
+    const _fb = await _loadTrFontBytes();
+    const tr = s => _fb ? (s == null ? '' : String(s)) : trTxt(s);
+    const clientName = tr(rawName);
     const doc = await PDFDocument.create();
     doc.setTitle(clientName+' - Supplement Protokol');
     doc.setAuthor('Uzm. Dyt. Yunus Aksu');
     doc.setProducer('AKD - Asistan Klinik Diyetisyen');
     const W=595.28, H=841.89;
     const page = doc.addPage([W,H]);
-    const hB = await doc.embedFont(StandardFonts.HelveticaBold);
-    const hR = await doc.embedFont(StandardFonts.Helvetica);
+    let hB, hR;
+    if (_fb) {
+      hR = await doc.embedFont(_fb.rBytes, { subset: true });
+      hB = await doc.embedFont(_fb.bBytes, { subset: true });
+    } else {
+      hB = await doc.embedFont(StandardFonts.HelveticaBold);
+      hR = await doc.embedFont(StandardFonts.Helvetica);
+    }
 
     page.drawRectangle({x:0,y:0,width:W,height:H,color:rgb(0.969,0.949,0.918)});
     const nW = hR.widthOfTextAtSize(clientName,30);
@@ -1754,11 +1780,11 @@ async function suppGenPDF() {
       const [lR,lG,lB]=palette[i%palette.length];
       const rclr=rgb(Math.max(0,lR-.13),Math.max(0,lG-.13),Math.max(0,lB-.05));
       rrect(page,sX,yPos,lW,rowH,rad,rgb(lR,lG,lB));
-      const nTxt=trTxt(suppItems[i].name), nFs=11, nw=hB.widthOfTextAtSize(nTxt,nFs);
+      const nTxt=tr(suppItems[i].name), nFs=11, nw=hB.widthOfTextAtSize(nTxt,nFs);
       page.drawText(nTxt,{x:Math.min(sX+lW/2-nw/2,sX+lW-nw-6),y:yPos+rowH/2-nFs*0.35,size:nFs,font:hB,color:rgb(1,1,1)});
       rrect(page,sX+lW+10,yPos,rW,rowH,rad,rclr);
       const rawT=suppItems[i].timing||'';
-      const tTxt=trTxt(rawT.length>52?rawT.substring(0,50)+'...':rawT);
+      const tTxt=tr(rawT.length>52?rawT.substring(0,50)+'...':rawT);
       page.drawText(tTxt,{x:sX+lW+24,y:yPos+rowH/2-10*0.35,size:10,font:hB,color:rgb(1,1,1)});
       yPos-=(rowH+gap);
     }
@@ -1768,8 +1794,8 @@ async function suppGenPDF() {
     const sig='Uzm. Dyt. Yunus Aksu', sW2=hB.widthOfTextAtSize(sig,9);
     page.drawText(sig,{x:W/2-sW2/2,y:fY+6,size:9,font:hB,color:rgb(0.35,0.32,0.28)});
     const dTxt=new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
-    const dW=hR.widthOfTextAtSize(trTxt(dTxt),8);
-    page.drawText(trTxt(dTxt),{x:W/2-dW/2,y:fY-6,size:8,font:hR,color:rgb(0.55,0.52,0.48)});
+    const dW=hR.widthOfTextAtSize(tr(dTxt),8);
+    page.drawText(tr(dTxt),{x:W/2-dW/2,y:fY-6,size:8,font:hR,color:rgb(0.55,0.52,0.48)});
 
     const bytes=await doc.save();
     const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
@@ -2523,7 +2549,8 @@ async function downloadDietPDF() {
   if (!PDFLib||!PDFLib.PDFDocument) { setMsg('PDF kutuphanesi yuklenemedi.','text-red-500'); return; }
 
   const {PDFDocument,rgb,StandardFonts} = PDFLib;
-  const tr = s => trTxt(s);
+  const _fb = await _loadTrFontBytes();
+  const tr = s => _fb ? (s == null ? '' : String(s)) : trTxt(s);
 
   const rawName = ($('cnt_name')||{}).value||'Danisan';
   const name    = tr(rawName);
@@ -2592,8 +2619,14 @@ async function downloadDietPDF() {
     const MY = 42;             // alt marj
     const CW = W - MX - 22;   // içerik genişliği
 
-    const fB = await doc.embedFont(StandardFonts.HelveticaBold);
-    const fR = await doc.embedFont(StandardFonts.Helvetica);
+    let fB, fR;
+    if (_fb) {
+      fR = await doc.embedFont(_fb.rBytes, { subset: true });
+      fB = await doc.embedFont(_fb.bBytes, { subset: true });
+    } else {
+      fB = await doc.embedFont(StandardFonts.HelveticaBold);
+      fR = await doc.embedFont(StandardFonts.Helvetica);
+    }
 
     // Yardımcı: kelime sarma
     function wrap(text, font, size, maxW) {
@@ -2958,7 +2991,8 @@ async function gvGeneratePDF(v) {
   let PDFLib; try{PDFLib=window.PDFLib;}catch(e){}
   if (!PDFLib||!PDFLib.PDFDocument) { setMsg('PDF kutuphanesi yuklenemedi.','text-red-500'); return; }
   const {PDFDocument,rgb,StandardFonts} = PDFLib;
-  const tr = s => trTxt(s);
+  const _fb = await _loadTrFontBytes();
+  const tr = s => _fb ? (s == null ? '' : String(s)) : trTxt(s);
 
   const rawClientName = ($('cnt_name')||{}).value||'Danisan';
   const clientName = tr(rawClientName);
@@ -2995,8 +3029,14 @@ async function gvGeneratePDF(v) {
     doc.setProducer('AKD - Asistan Klinik Diyetisyen');
 
     const W=595.28, H=841.89, SIDEBAR=58, MX=SIDEBAR+14, MY=42, CW=W-MX-22;
-    const fB = await doc.embedFont(StandardFonts.HelveticaBold);
-    const fR = await doc.embedFont(StandardFonts.Helvetica);
+    let fB, fR;
+    if (_fb) {
+      fR = await doc.embedFont(_fb.rBytes, { subset: true });
+      fB = await doc.embedFont(_fb.bBytes, { subset: true });
+    } else {
+      fB = await doc.embedFont(StandardFonts.HelveticaBold);
+      fR = await doc.embedFont(StandardFonts.Helvetica);
+    }
 
     function wrap(text, font, size, maxW) {
       const out=[];
