@@ -54,6 +54,9 @@
       <p id="client_badge_name" class="text-white font-bold text-sm"></p>
       <p id="client_badge_detail" class="text-indigo-200 text-[11px]"></p>
     </div>
+    <button onclick="AKD_SYNC.openModal()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-xl font-semibold border border-white/30 transition flex items-center gap-1.5" title="Google senkron">
+      <i class="fa-solid fa-cloud"></i><span id="sync_dot" class="inline-block w-2 h-2 rounded-full bg-slate-300"></span><span id="sync_label" class="hidden sm:inline">Senkron kapalı</span>
+    </button>
     <select id="client_selector" onchange="loadClient()" class="bg-indigo-800 text-white text-xs border border-white/30 rounded-xl px-3 py-1.5 outline-none cursor-pointer">
       <option value="">— Danışan Seç —</option>
     </select>
@@ -65,6 +68,48 @@
     </button>
   </div>
 </header>
+
+<!-- ══ GOOGLE SENKRON MODALI ══ -->
+<div id="sync_modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print" onclick="if(event.target===this)AKD_SYNC.closeModal()">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 space-y-4">
+    <div class="flex items-center justify-between">
+      <h3 class="font-black text-slate-800 flex items-center gap-2"><i class="fa-solid fa-cloud text-indigo-600"></i> Google Senkron</h3>
+      <button onclick="AKD_SYNC.closeModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+    </div>
+    <p class="text-xs text-slate-500">Danışan kayıtları, görüşmeler, protokoller ve randevular <b>kendi Google Drive'ınızda</b> ("AKD Senkron" klasörü) saklanır ve bağladığınız tüm cihazlarda aynı görünür. Her gün otomatik yedek alınır (son 30 gün).</p>
+    <div id="sync_modal_status" class="text-xs rounded-xl px-3 py-2 border font-semibold"></div>
+
+    <details class="text-xs bg-slate-50 rounded-xl p-3 border border-slate-100">
+      <summary class="cursor-pointer font-bold text-slate-700">İlk kurulum (bir kez, ~5 dk)</summary>
+      <ol class="list-decimal pl-4 mt-2 space-y-1.5 text-slate-600">
+        <li><button onclick="AKD_SYNC.copyCode()" class="px-2 py-0.5 bg-indigo-600 text-white rounded-md font-bold"><i class="fa-regular fa-copy"></i> Kodu kopyala</button> — anahtarınız kodun içine eklenir.</li>
+        <li><a href="https://script.google.com/create" target="_blank" rel="noopener" class="text-indigo-600 font-bold underline">script.google.com/create</a> açın (yeni proje), içindekini silip kodu yapıştırın, <b>Kaydet</b>.</li>
+        <li>Üstteki fonksiyon listesinden <b>kurulum</b>'u seçip <b>Çalıştır</b> → Google izin ister, kendi hesabınızla onaylayın.</li>
+        <li><b>Dağıt → Yeni dağıtım</b> → tür: <b>Web uygulaması</b> · Yürüten: <b>Ben</b> · Erişimi olan: <b>Herkes</b> → <b>Dağıt</b>.</li>
+        <li>Verilen <b>Web uygulaması URL'sini</b> aşağıya yapıştırıp <b>Bağlan</b>'a basın.</li>
+      </ol>
+      <p class="mt-2 text-slate-500">"Herkes" ayarı adresi açar ama anahtar olmadan veri okunamaz ve yazılamaz. Kodu ve anahtarı kimseyle paylaşmayın.</p>
+    </details>
+
+    <div class="space-y-2">
+      <label class="text-[11px] text-slate-500 font-semibold block">Apps Script Web Uygulaması URL'si
+        <input id="sync_url" type="url" class="input mt-1 text-xs" placeholder="https://script.google.com/macros/s/.../exec">
+      </label>
+      <label class="text-[11px] text-slate-500 font-semibold block">Gizli Anahtar <span class="font-normal">(diğer cihazlarda aynısını yazın)</span>
+        <div class="flex gap-2 mt-1">
+          <input id="sync_key" type="text" class="input text-xs font-mono" autocomplete="off" spellcheck="false">
+          <button onclick="navigator.clipboard.writeText($('sync_key').value)" class="px-3 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-200" title="Anahtarı kopyala"><i class="fa-regular fa-copy"></i></button>
+        </div>
+      </label>
+      <p class="text-[11px] text-slate-400">İkinci cihazı bağlarken: kurulumu tekrar yapmayın; aynı URL'yi ve ilk cihazdaki anahtarı buraya yazıp <b>Bağlan</b>'a basın.</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button onclick="AKD_SYNC.connect()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700"><i class="fa-solid fa-link"></i> Bağlan ve Senkronize Et</button>
+      <button onclick="AKD_SYNC.syncNow('manual')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200"><i class="fa-solid fa-arrows-rotate"></i> Şimdi senkronize et</button>
+      <button id="sync_disconnect" onclick="AKD_SYNC.disconnect()" class="hidden px-4 py-2 bg-red-50 text-red-500 border border-red-100 rounded-xl text-xs font-semibold hover:bg-red-100">Bağlantıyı kaldır</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ DANIŞAN YÖNETİM MODALI ══ -->
 <div id="client_manager_modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print">
@@ -4534,6 +4579,410 @@ function meetRender() {
     all.innerHTML = up.length ? up.map(m => meetCard(m, true)).join('') : '<p class="text-xs text-slate-400 italic">Yaklaşan randevu yok.</p>';
   }
 }
+
+</script>
+<script type="text/plain" id="akd_gas_code">
+/**
+ * AKD – Asistan Klinik Diyetisyen · Google Senkron
+ * Danışan kayıtlarını SİZİN Google Drive'ınızda "AKD Senkron" klasöründe saklar.
+ * Her gün otomatik yedek alır (son 30 gün tutulur).
+ * Bu anahtar olmadan kimse verilere erişemez — kodu kimseyle paylaşmayın.
+ */
+const SYNC_KEY = '__SYNC_KEY__';
+
+const FOLDER_NAME = 'AKD Senkron';
+const DATA_FILE   = 'akd-veriler.json';
+const KEEP_BACKUPS = 30;
+
+function doGet(e) {
+  const p = (e && e.parameter) || {};   // editörden elle çalıştırılınca e boş gelir
+  const cb = String(p.callback || '').replace(/[^\w.$]/g, '');
+  if (p.key !== SYNC_KEY) return out_({ error: 'Yetkisiz: anahtar hatalı' }, cb);
+  const props = PropertiesService.getScriptProperties();
+  if (p.op === 'pull') {
+    return out_({ ok: true, rev: Number(props.getProperty('rev') || 0), data: load_() }, cb);
+  }
+  return out_({ ok: true, rev: Number(props.getProperty('rev') || 0), lastPush: props.getProperty('lastPush') || '' }, cb);
+}
+
+function doPost(e) {
+  let body;
+  try { body = JSON.parse(e && e.postData ? e.postData.contents : ''); } catch (err) { return out_({ error: 'Geçersiz veri' }); }
+  if (!body || body.key !== SYNC_KEY) return out_({ error: 'Yetkisiz: anahtar hatalı' });
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const cur = load_();
+    const inc = body.data || {};
+    Object.keys(inc).forEach(k => {
+      const a = cur[k], b = inc[k];
+      if (!b || typeof b.t !== 'number') return;
+      if (k === 'akd_deleted') {
+        cur[k] = { t: Math.max(a ? a.t : 0, b.t), v: mergeDeleted_(a && a.v, b.v) };
+      } else if (k === 'akd_clients') {
+        const del = (cur.akd_deleted && cur.akd_deleted.v) || '{}';
+        cur[k] = { t: Math.max(a ? a.t : 0, b.t), v: mergeClients_(a && a.v, b.v, mergeDeleted_(del, inc.akd_deleted && inc.akd_deleted.v)) };
+      } else if (!a || b.t >= a.t) {
+        cur[k] = b;
+      }
+    });
+    save_(cur);
+    const props = PropertiesService.getScriptProperties();
+    props.setProperty('rev', String(Date.now()));
+    props.setProperty('lastPush', String(body.pushId || ''));
+    dailyBackup_();
+    return out_({ ok: true });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* Danışan listesi: isme göre birleştir, yeni olan (_t) kazanır, silinenler düşer */
+function mergeClients_(aStr, bStr, delStr) {
+  const parse = s => { try { return JSON.parse(s || '[]'); } catch (e) { return []; } };
+  const del = (() => { try { return JSON.parse(delStr || '{}'); } catch (e) { return {}; } })();
+  const map = {};
+  parse(aStr).concat(parse(bStr)).forEach(r => {
+    const n = String((r && r.cnt_name) || '').trim(); if (!n) return;
+    if (!map[n] || (r._t || 0) >= (map[n]._t || 0)) map[n] = r;
+  });
+  return JSON.stringify(Object.keys(map).map(n => map[n]).filter(r => !(del[r.cnt_name.trim()] >= (r._t || 0))));
+}
+function mergeDeleted_(aStr, bStr) {
+  const parse = s => { try { return JSON.parse(s || '{}'); } catch (e) { return {}; } };
+  const a = parse(aStr), b = parse(bStr);
+  Object.keys(b).forEach(n => { a[n] = Math.max(a[n] || 0, b[n]); });
+  return JSON.stringify(a);
+}
+
+function folder_() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('folderId');
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
+  const f = DriveApp.createFolder(FOLDER_NAME);
+  props.setProperty('folderId', f.getId());
+  return f;
+}
+function file_() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('fileId');
+  if (id) { try { return DriveApp.getFileById(id); } catch (e) {} }
+  const f = folder_().createFile(DATA_FILE, '{}', MimeType.PLAIN_TEXT);
+  props.setProperty('fileId', f.getId());
+  return f;
+}
+function load_() {
+  try { return JSON.parse(file_().getBlob().getDataAsString('UTF-8') || '{}'); } catch (e) { return {}; }
+}
+function save_(obj) { file_().setContent(JSON.stringify(obj)); }
+
+function dailyBackup_() {
+  const props = PropertiesService.getScriptProperties();
+  const today = Utilities.formatDate(new Date(), 'Europe/Istanbul', 'yyyy-MM-dd');
+  if (props.getProperty('lastBackup') === today) return;
+  const folder = folder_();
+  file_().makeCopy('akd-yedek-' + today + '.json', folder);
+  props.setProperty('lastBackup', today);
+  const backups = [];
+  const it = folder.getFiles();
+  while (it.hasNext()) { const f = it.next(); if (/^akd-yedek-\d{4}-\d{2}-\d{2}\.json$/.test(f.getName())) backups.push(f); }
+  backups.sort((x, y) => y.getName().localeCompare(x.getName()));
+  backups.slice(KEEP_BACKUPS).forEach(f => f.setTrashed(true));
+}
+
+function out_(obj, cb) {
+  const json = JSON.stringify(obj);
+  if (cb) return ContentService.createTextOutput(cb + '(' + json + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
+
+/* Kurulumda bir kez çalıştırın: Drive izni verilir ve klasör oluşur */
+function kurulum() {
+  file_();
+  Logger.log('Hazır. Klasör: ' + folder_().getUrl());
+}
+
+</script>
+<script>
+/* ════════════════════════════════════════════════════
+   GOOGLE SENKRON
+   Kayıtlar bu cihazın tarayıcısında durur; ayrıca kendi Google Drive'ınızdaki
+   Apps Script'e gönderilir ve diğer cihazlardan çekilir.
+   Anahtar ve URL yalnızca bu cihazda saklanır (senkronlanmaz, koda yazılmaz).
+════════════════════════════════════════════════════ */
+const AKD_SYNC = (() => {
+  const KEYS = ['akd_clients', 'akd_deleted', 'akd_meets', 'akd_meet_default', 'akd_rec_presets'];
+  const PREFIXES = ['bia_', 'supp_', 'gv_visits_'];
+  const isSynced = k => KEYS.includes(k) || PREFIXES.some(p => k.startsWith(p));
+  const CFG = 'akd_sync_cfg', META = 'akd_sync_meta';
+  const ls = window.localStorage;
+  const _set = Storage.prototype.setItem, _get = Storage.prototype.getItem, _rem = Storage.prototype.removeItem;
+  const raw = { set: (k, v) => _set.call(ls, k, v), get: k => _get.call(ls, k), rem: k => _rem.call(ls, k) };
+  const jparse = (s, d) => { try { const v = JSON.parse(s); return v == null ? d : v; } catch (e) { return d; } };
+
+  let applying = false, pushTimer = null, busy = false, pending = false, state = 'off', lastErr = '';
+
+  const cfg = () => jparse(raw.get(CFG), {});
+  const setCfg = c => raw.set(CFG, JSON.stringify(c));
+  const meta = () => jparse(raw.get(META), {});
+  const setMeta = m => raw.set(META, JSON.stringify(m));
+  const configured = () => { const c = cfg(); return !!(c.url && c.key); };
+
+  /* ── Danışan listesi yazılırken: değişen kayda zaman damgası, silinene mezar taşı ── */
+  function stampClients(newStr) {
+    const now = Date.now();
+    const oldArr = jparse(raw.get('akd_clients'), []);
+    const newArr = jparse(newStr, null);
+    if (!Array.isArray(newArr)) return newStr;
+    const strip = r => { const c = Object.assign({}, r); delete c._t; return JSON.stringify(c); };
+    const oldBy = {}; oldArr.forEach(r => { if (r && r.cnt_name) oldBy[r.cnt_name.trim()] = r; });
+    const names = new Set();
+    newArr.forEach(r => {
+      if (!r || !r.cnt_name) return;
+      const n = r.cnt_name.trim(); names.add(n);
+      const o = oldBy[n];
+      r._t = (o && strip(o) === strip(r)) ? (o._t || 1) : now;
+    });
+    const gone = Object.keys(oldBy).filter(n => !names.has(n));
+    if (gone.length) {
+      const del = jparse(raw.get('akd_deleted'), {});
+      gone.forEach(n => { del[n] = now; });
+      writeLocal('akd_deleted', JSON.stringify(del));
+    }
+    return JSON.stringify(newArr);
+  }
+  function touch(k) { const m = meta(); m[k] = Date.now(); setMeta(m); schedulePush(); }
+  function writeLocal(k, v) { _set.call(ls, k, v); touch(k); }
+
+  // localStorage yazımlarını izle
+  Storage.prototype.setItem = function (k, v) {
+    if (this !== ls || applying || !isSynced(k)) return _set.call(this, k, v);
+    if (k === 'akd_clients') v = stampClients(String(v));
+    _set.call(this, k, v); touch(k);
+  };
+  Storage.prototype.removeItem = function (k) {
+    _rem.call(this, k);
+    if (this === ls && !applying && isSynced(k)) touch(k);
+  };
+
+  /* ── Birleştirme (sunucudakiyle aynı mantık) ── */
+  function mergeDeleted(a, b) {
+    const x = jparse(a, {}), y = jparse(b, {});
+    Object.keys(y).forEach(n => { x[n] = Math.max(x[n] || 0, y[n]); });
+    return JSON.stringify(x);
+  }
+  function mergeClients(a, b, del) {
+    const d = jparse(del, {}), map = {};
+    jparse(a, []).concat(jparse(b, [])).forEach(r => {
+      const n = String((r && r.cnt_name) || '').trim(); if (!n) return;
+      if (!map[n] || (r._t || 0) >= (map[n]._t || 0)) map[n] = r;
+    });
+    return JSON.stringify(Object.values(map).filter(r => !(d[r.cnt_name.trim()] >= (r._t || 0))));
+  }
+
+  /* ── Ağ ── */
+  function jsonp(params, timeoutMs = 60000) {
+    const c = cfg();
+    return new Promise((resolve, reject) => {
+      const cb = '_akdsync_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+      const s = document.createElement('script');
+      const t = setTimeout(() => { done(); reject(new Error('Google yanıt vermedi (zaman aşımı)')); }, timeoutMs);
+      const done = () => { clearTimeout(t); window[cb] = () => {}; s.remove(); };
+      window[cb] = d => { done(); d && d.error ? reject(new Error(d.error)) : resolve(d); };
+      const q = Object.assign({ key: c.key, callback: cb, t: Date.now() }, params);
+      s.src = c.url + (c.url.includes('?') ? '&' : '?') + Object.keys(q).map(k => k + '=' + encodeURIComponent(q[k])).join('&');
+      s.onerror = () => { done(); reject(new Error('Apps Script adresine ulaşılamadı')); };
+      document.head.appendChild(s);
+    });
+  }
+  function collectChanged(since) {
+    const m = meta(), data = {};
+    Object.keys(m).forEach(k => {
+      if (!isSynced(k) || m[k] <= since) return;
+      const v = raw.get(k);
+      data[k] = { t: m[k], v: v == null ? null : v };
+    });
+    return data;
+  }
+  async function post(data) {
+    const c = cfg();
+    const pushId = 'p' + Date.now() + Math.floor(Math.random() * 1e6);
+    // Apps Script CORS başlığı döndürmez: no-cors ile gönderilir, ardından JSONP ile doğrulanır
+    await fetch(c.url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ key: c.key, pushId, data }) });
+    const st = await jsonp({ op: 'status' });
+    if (st.lastPush !== pushId) throw new Error('Gönderim doğrulanamadı');
+  }
+
+  /* ── Çek + birleştir + gönder ── */
+  async function syncNow(reason) {
+    if (!configured()) return setState('off');
+    if (busy) { pending = true; return; }
+    busy = true; pending = false; setState('busy');
+    try {
+      const c = cfg();
+      const startedAt = Date.now();
+      const res = await jsonp({ op: 'pull' });
+      const remote = res.data || {};
+      const m = meta(), changed = [];
+      const local = k => raw.get(k);
+      applying = true;
+      try {
+        // silinenler listesi önce
+        const delMerged = mergeDeleted(local('akd_deleted'), remote.akd_deleted && remote.akd_deleted.v);
+        Object.keys(remote).forEach(k => {
+          if (!isSynced(k)) return;
+          const r = remote[k], lt = m[k] || 0;
+          if (k === 'akd_deleted') {
+            if (delMerged !== (local(k) || '{}')) { _set.call(ls, k, delMerged); changed.push(k); }
+            m[k] = Math.max(lt, r.t); return;
+          }
+          if (k === 'akd_clients') {
+            const merged = mergeClients(local(k), r.v, delMerged);
+            if (merged !== (local(k) || '[]')) { _set.call(ls, k, merged); changed.push(k); }
+            // birleşim yerelden farklıysa sunucuya geri gönderilsin
+            m[k] = merged !== (r.v || '[]') ? Math.max(Date.now(), r.t + 1) : Math.max(lt, r.t);
+            return;
+          }
+          if (r.t > lt) {
+            if (r.v == null) _rem.call(ls, k); else _set.call(ls, k, r.v);
+            m[k] = r.t; changed.push(k);
+          }
+        });
+        // silinen danışanlar listede kalmasın
+        if (!remote.akd_clients && local('akd_clients')) {
+          const merged = mergeClients(local('akd_clients'), '[]', delMerged);
+          if (merged !== local('akd_clients')) { _set.call(ls, 'akd_clients', merged); changed.push('akd_clients'); }
+        }
+        // ilk bağlantı: bu cihazda olup sunucuda olmayan her şeyi gönder
+        for (let i = 0; i < ls.length; i++) {
+          const k = ls.key(i);
+          if (isSynced(k) && !remote[k] && !m[k]) m[k] = startedAt;
+        }
+        setMeta(m);
+      } finally { applying = false; }
+
+      const toSend = collectChanged(c.lastSync || 0);
+      Object.keys(toSend).forEach(k => { if (remote[k] && remote[k].t >= toSend[k].t) delete toSend[k]; });
+      if (Object.keys(toSend).length) await post(toSend);
+      c.lastSync = startedAt; c.lastOk = Date.now(); setCfg(c);
+      lastErr = '';
+      if (changed.length) onRemoteChange(changed);
+      setState('ok');
+    } catch (e) {
+      lastErr = e.message || String(e);
+      setState('err');
+    } finally {
+      busy = false;
+      if (pending) schedulePush(1500);
+    }
+  }
+  function schedulePush(ms = 4000) {
+    if (!configured()) return;
+    setState('dirty');
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(() => syncNow('push'), ms);
+  }
+
+  /* Başka cihazdan gelen değişiklikleri ekrana yansıt */
+  function onRemoteChange(keys) {
+    if (keys.includes('akd_clients') && typeof CL !== 'undefined') {
+      const curName = (typeof curIdx !== 'undefined' && curIdx >= 0 && CL[curIdx]) ? CL[curIdx].cnt_name : null;
+      CL = jparse(raw.get('akd_clients'), []);
+      if (curName != null) { curIdx = CL.findIndex(c => c.cnt_name === curName); }
+      try { renderClientList(); if ($('client_selector')) $('client_selector').value = curIdx >= 0 ? curIdx : ''; } catch (e) {}
+    }
+    try { if (!$('tab-gv').classList.contains('hidden')) { gvRender(); meetRender(); } } catch (e) {}
+    toast('Diğer cihazdaki kayıtlar alındı.');
+  }
+
+  /* ── Durum göstergesi ── */
+  function setState(s) {
+    state = s;
+    const dot = $('sync_dot'), lbl = $('sync_label');
+    const map = {
+      off:   ['bg-slate-300', 'Senkron kapalı'],
+      ok:    ['bg-emerald-400', 'Senkronize'],
+      dirty: ['bg-amber-300', 'Değişiklik bekliyor'],
+      busy:  ['bg-amber-300 animate-pulse', 'Senkronize ediliyor…'],
+      err:   ['bg-red-400', 'Senkron hatası'],
+    };
+    const [cls, text] = map[s] || map.off;
+    if (dot) dot.className = 'inline-block w-2 h-2 rounded-full ' + cls;
+    if (lbl) lbl.textContent = text;
+    renderModal();
+  }
+  function toast(msg) {
+    let t = $('sync_toast');
+    if (!t) { t = document.createElement('div'); t.id = 'sync_toast'; t.className = 'no-print fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-lg'; document.body.appendChild(t); }
+    t.textContent = msg; t.style.display = 'block';
+    clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+
+  /* ── Kurulum penceresi ── */
+  function genKey() {
+    const a = new Uint8Array(24); crypto.getRandomValues(a);
+    return Array.from(a, b => 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 55]).join('');
+  }
+  function renderModal() {
+    const box = $('sync_modal_status'); if (!box) return;
+    const c = cfg();
+    const when = c.lastOk ? new Date(c.lastOk).toLocaleString('tr-TR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).replace(':', '.') : '—';
+    const color = { ok: 'text-emerald-700 bg-emerald-50 border-emerald-100', err: 'text-red-700 bg-red-50 border-red-100' }[state] || 'text-slate-600 bg-slate-50 border-slate-100';
+    box.className = 'text-xs rounded-xl px-3 py-2 border font-semibold whitespace-pre-wrap ' + color;
+    box.textContent = !configured() ? 'Bu cihaz henüz bağlı değil.'
+      : (state === 'err' ? 'Hata: ' + lastErr + '\nSon başarılı senkron: ' + when : (($('sync_label') || {}).textContent || '') + ' · Son senkron: ' + when);
+    const dis = $('sync_disconnect'); if (dis) dis.classList.toggle('hidden', !configured());
+  }
+  function openModal() {
+    const c = cfg();
+    if (!c.key) { c.key = genKey(); setCfg(c); }
+    $('sync_url').value = c.url || '';
+    $('sync_key').value = c.key;
+    $('sync_modal').classList.remove('hidden');
+    renderModal();
+  }
+  function closeModal() { $('sync_modal').classList.add('hidden'); }
+  function copyCode() {
+    const key = $('sync_key').value.trim();
+    if (key.length < 16) return alert('Anahtar en az 16 karakter olmalı.');
+    const code = $('akd_gas_code').textContent.replace('__SYNC_KEY__', key).trim();
+    navigator.clipboard.writeText(code).then(() => toast('Apps Script kodu kopyalandı (anahtarınız içinde).'), () => alert('Kopyalanamadı.'));
+  }
+  async function connect() {
+    const url = $('sync_url').value.trim(), key = $('sync_key').value.trim();
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)) return alert('Apps Script web uygulaması adresi "https://script.google.com/macros/s/.../exec" biçiminde olmalı.');
+    if (key.length < 16) return alert('Anahtar en az 16 karakter olmalı.');
+    const c = cfg(); const changedTarget = c.url !== url || c.key !== key;
+    Object.assign(c, { url, key }); if (changedTarget) delete c.lastSync; setCfg(c);
+    if (changedTarget) setMeta({});   // yeni hedef: bu cihazdaki her şey bir kez gönderilsin
+    const box = $('sync_modal_status'); if (box) box.textContent = 'Bağlanılıyor… (Google 10-20 sn sürebilir)';
+    try { await jsonp({ op: 'status' }); } catch (e) { lastErr = e.message; setState('err'); return; }
+    await syncNow('connect');
+  }
+  function disconnect() {
+    if (!confirm('Bu cihazın senkron bağlantısı kaldırılsın mı? (Kayıtlar bu cihazda ve Drive\'da kalır.)')) return;
+    const c = cfg(); delete c.url; delete c.lastSync; delete c.lastOk; setCfg(c); setState('off');
+  }
+
+  /* ── Başlangıç ── */
+  function init() {
+    setState(configured() ? 'ok' : 'off');
+    if (configured()) syncNow('load');
+    // sekmeye geri dönünce (1 dk'dan uzun süre geçtiyse) diğer cihazdaki değişiklikleri çek
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && configured() && Date.now() - (cfg().lastOk || 0) > 60000) syncNow('focus');
+    });
+    // sayfa kapanırken bekleyen değişiklikleri gönder
+    window.addEventListener('pagehide', () => {
+      if (!configured() || state !== 'dirty') return;
+      const c = cfg(), data = collectChanged(c.lastSync || 0);
+      if (Object.keys(data).length) navigator.sendBeacon(c.url, new Blob([JSON.stringify({ key: c.key, pushId: 'beacon', data })], { type: 'text/plain;charset=utf-8' }));
+    });
+  }
+  return { init, syncNow, openModal, closeModal, copyCode, connect, disconnect, genKey: () => { $('sync_key').value = genKey(); } };
+})();
+AKD_SYNC.init();
 
 </script>
 </body>
