@@ -97,7 +97,7 @@
       </label>
       <label class="text-[11px] text-slate-500 font-semibold block">Gizli Anahtar <span class="font-normal">(diğer cihazlarda aynısını yazın)</span>
         <div class="flex gap-2 mt-1">
-          <input id="sync_key" type="text" class="input text-xs font-mono" autocomplete="off" spellcheck="false">
+          <input id="sync_key" type="text" class="input text-xs font-mono" autocomplete="off" spellcheck="false" placeholder="Apps Script'teki SYNC_KEY değeri">
           <button onclick="navigator.clipboard.writeText($('sync_key').value)" class="px-3 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-200" title="Anahtarı kopyala"><i class="fa-regular fa-copy"></i></button>
         </div>
       </label>
@@ -4722,7 +4722,9 @@ const AKD_SYNC = (() => {
 
   let applying = false, pushTimer = null, busy = false, pending = false, state = 'off', lastErr = '';
 
-  const cfg = () => jparse(raw.get(CFG), {});
+  // Kliniğin senkron adresi (anahtar olmadan erişilemez; anahtar her cihazda ayrıca girilir)
+  const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbwo1nerFrQaJ7dtnxsLkdRcemrVi_RDf_NrYaMYLRO4gKo7j94WdfXyRo8UwVt-7NbE/exec';
+  const cfg = () => { const c = jparse(raw.get(CFG), {}); if (!c.url) c.url = DEFAULT_URL; return c; };
   const setCfg = c => raw.set(CFG, JSON.stringify(c));
   const meta = () => jparse(raw.get(META), {});
   const setMeta = m => raw.set(META, JSON.stringify(m));
@@ -4936,9 +4938,8 @@ const AKD_SYNC = (() => {
   }
   function openModal() {
     const c = cfg();
-    if (!c.key) { c.key = genKey(); setCfg(c); }
     $('sync_url').value = c.url || '';
-    $('sync_key').value = c.key;
+    $('sync_key').value = c.key || '';
     $('sync_modal').classList.remove('hidden');
     renderModal();
   }
@@ -4962,7 +4963,7 @@ const AKD_SYNC = (() => {
   }
   function disconnect() {
     if (!confirm('Bu cihazın senkron bağlantısı kaldırılsın mı? (Kayıtlar bu cihazda ve Drive\'da kalır.)')) return;
-    const c = cfg(); delete c.url; delete c.lastSync; delete c.lastOk; setCfg(c); setState('off');
+    const c = cfg(); delete c.key; delete c.lastSync; delete c.lastOk; setCfg(c); $('sync_key').value = ''; setState('off');
   }
 
   /* ── Başlangıç ── */

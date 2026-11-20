@@ -1,4 +1,4 @@
-const CACHE = 'akd-v7';
+const CACHE = 'akd-v8';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './pdf-lib.min.js',
   './icon-192.png', './icon-512.png'];
 
